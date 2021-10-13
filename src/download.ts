@@ -7,7 +7,7 @@ async function Download(url: string, dest: fs.PathLike): Promise<fs.PathLike> {
   // clean download folder
   const tmpFolder = path.dirname(dest as string);
   fs.readdir(tmpFolder, function (err, files) {
-    files.forEach(function (file, index) {
+    files?.forEach(function (file, index) {
       fs.stat(path.join(tmpFolder, file), function (err, stat) {
         var endTime, now;
         if (err) {

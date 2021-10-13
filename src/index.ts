@@ -27,6 +27,7 @@ const getRemoteVtexXml = async ({
 };
 
 const server = http.createServer(RequestHandler);
+let requestCounter = 0;
 
 server.on("request", async (req, res) => {
   if (res.writableEnded) {
@@ -35,7 +36,8 @@ server.on("request", async (req, res) => {
 
   const { headers, method, url } = req;
   const queryObject = Url.parse(url ?? "", true).query;
-
+  requestCounter = requestCounter + 1;
+  console.log(`Request (${requestCounter}) - START: ${url}`);
   try {
     const fileName = await getRemoteVtexXml(
       queryObject as {
@@ -75,6 +77,7 @@ server.on("request", async (req, res) => {
       })
     );
   }
+  console.log(`Request (${requestCounter}) - END: ${url}`);
 });
 
 server.listen(port, () => {
