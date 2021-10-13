@@ -1,0 +1,81 @@
+import http from "http";
+import fs from "fs";
+import { resolve } from "path";
+import Url from "url";
+import Download from "./download";
+import RequestHandler from "./requestHandler";
+import XmlTransform from "./xmlTransform";
+
+const port = 8000;
+
+const getRemoteVtexXml = async ({
+  storeName,
+  xmlName,
+}: {
+  storeName: string;
+  xmlName: string;
+}): Promise<fs.PathLike> => {
+  const time = new Date().getTime();
+  const file = resolve("./tmp", `${storeName}-${xmlName}-${time}.xml`);
+  const savedFile = await Download(
+    `https://${storeName}.myvtex.com/XMLData/${xmlName}.xml`,
+    file
+  );
+  return savedFile;
+};
+
+const server = http.createServer(RequestHandler);
+
+server.on("request", async (req, res) => {
+  if (res.writableEnded) {
+    return;
+  }
+
+  const { headers, method, url } = req;
+  const queryObject = Url.parse(url ?? "", true).query;
+
+  try {
+    const fileName = await getRemoteVtexXml(
+      queryObject as {
+        storeName: string;
+        xmlName: string;
+        salesChannel: string;
+      }
+    );
+
+    const fileNameTransformed = await XmlTransform({
+      file: fileName,
+      storeName: (queryObject?.storeName ?? "") as string,
+      regionId: (queryObject?.regionId ?? "") as string,
+      salesChannel: (queryObject?.salesChannel ?? "") as string,
+    });
+    var stat = fs.statSync(fileNameTransformed);
+
+    const readStream = fs.createReadStream(fileNameTransformed);
+    readStream.on("open", () =>
+      res.writeHead(200, {
+        "Content-Type": "text/xml",
+        "Content-Length": stat.size,
+      })
+    );
+    readStream.pipe(res);
+  } catch (err) {
+    res.statusCode = 500;
+    res.end("Error");
+    console.log(
+      "ERR:",
+      JSON.stringify({
+        headers,
+        method,
+        url,
+        err,
+      })
+    );
+  }
+});
+
+server.listen(port, () => {
+  console.log(`Server up on port ${port}`);
+});
+
+server.timeout = 300000; //  5 minutes

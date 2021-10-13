@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  flow:
+    container_name: swift_vtex_xml_transformer
+    build: .
+    working_dir: /usr/app/www/
+    environment:
+      - NODE_ENV=production
+    ports:
+      - 8000:8000
+
+      #volumes:
+    #  - ./www:/usr/app/www/
+    #  - /usr/app/node_modules
+    #restart: unless-stopped
