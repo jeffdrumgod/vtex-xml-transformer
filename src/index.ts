@@ -9,16 +9,18 @@ import XmlTransform from "./xmlTransform";
 const port = 8000;
 
 const getRemoteVtexXml = async ({
+  storeDomain,
   storeName,
   xmlName,
 }: {
+  storeDomain: string;
   storeName: string;
   xmlName: string;
 }): Promise<fs.PathLike> => {
   const time = new Date().getTime();
   const file = resolve("./tmp", `${storeName}-${xmlName}-${time}.xml`);
   const savedFile = await Download(
-    `https://${storeName}.myvtex.com/XMLData/${xmlName}.xml`,
+    `https://${storeDomain}/XMLData/${xmlName}.xml`,
     file
   );
   return savedFile;
@@ -37,6 +39,7 @@ server.on("request", async (req, res) => {
   try {
     const fileName = await getRemoteVtexXml(
       queryObject as {
+        storeDomain: string;
         storeName: string;
         xmlName: string;
         salesChannel: string;

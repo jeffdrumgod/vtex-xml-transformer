@@ -23,7 +23,13 @@ const RequestHandler = (
   }
 
   if (urlParsed?.pathname === "/xml-parse") {
-    const requiredParams = ["storeName", "xmlName", "regionId", "salesChannel"];
+    const requiredParams = [
+      "storeDomain",
+      "storeName",
+      "xmlName",
+      "regionId",
+      "salesChannel",
+    ];
 
     for (const param of requiredParams) {
       if (!queryObject[param]) {
