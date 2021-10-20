@@ -135,7 +135,7 @@ const XmlTransform = async ({
             // add new params
             try {
               const a = new URL(link);
-              a.searchParams.append("region_id", regionId);
+              // a.searchParams.append("region_id", regionId);
               a.searchParams.append("sc", salesChannel);
               link = a.toString();
             } catch (e: any) {
@@ -156,6 +156,7 @@ const XmlTransform = async ({
               link: {
                 __cdata: link,
               },
+              region_id: regionId,
               "g:sale_price": {
                 __cdata: sale_price,
               },
