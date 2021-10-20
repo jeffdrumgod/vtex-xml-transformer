@@ -12,15 +12,17 @@ const getRemoteVtexXml = async ({
   storeDomain,
   storeName,
   xmlName,
+  salesChannel,
 }: {
   storeDomain: string;
   storeName: string;
   xmlName: string;
+  salesChannel: string;
 }): Promise<fs.PathLike> => {
   const time = new Date().getTime();
   const file = resolve("./tmp", `${storeName}-${xmlName}-${time}.xml`);
   const savedFile = await Download(
-    `https://${storeDomain}/XMLData/${xmlName}.xml`,
+    `https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`,
     file
   );
   return savedFile;
