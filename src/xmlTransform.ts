@@ -188,7 +188,7 @@ const XmlTransform = async ({
           }), // default is a=>a
       };
       const parser = new FastXmlParser.j2xParser(optionsEncode);
-      jsonObj.feed.transformedBy = "swift-vtex-xml-transformer";
+      jsonObj.feed.transformedBy = "vtex-xml-transformer";
       const xml = parser.parse({
         ...jsonObj,
         feed: {

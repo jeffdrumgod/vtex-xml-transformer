@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   xmltransformer:
-    container_name: swift_vtex_xml_transformer
+    container_name: vtex_xml_transformer
     build: .
     working_dir: /usr/app/www/
     environment:
