@@ -156,7 +156,9 @@ const XmlTransform = async ({
               link: {
                 __cdata: link,
               },
-              region_id: regionId,
+              region_id: {
+                __cdata: regionId,
+              },
               "g:sale_price": {
                 __cdata: sale_price,
               },
