@@ -31,7 +31,7 @@ var RequestHandler = function (req, res) {
             var param = requiredParams_1[_i];
             if (!queryObject[param]) {
                 res.statusCode = 400;
-                res.end("Missing required parameter: " + param);
+                res.end("Missing required parameter: ".concat(param));
                 return;
             }
         }

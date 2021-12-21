@@ -77,7 +77,7 @@ function Download(url, dest) {
                         else {
                             file.close();
                             fs_1.default.unlink(dest, function () { }); // Delete temp file
-                            reject("Server responded with " + response.statusCode + ": " + response.statusMessage);
+                            reject("Server responded with ".concat(response.statusCode, ": ").concat(response.statusMessage));
                         }
                     });
                     request.on("error", function (err) {

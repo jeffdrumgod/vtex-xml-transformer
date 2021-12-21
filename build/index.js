@@ -48,15 +48,15 @@ var requestHandler_1 = __importDefault(require("./requestHandler"));
 var xmlTransform_1 = __importDefault(require("./xmlTransform"));
 var port = 8000;
 var getRemoteVtexXml = function (_a) {
-    var storeDomain = _a.storeDomain, storeName = _a.storeName, xmlName = _a.xmlName;
+    var storeDomain = _a.storeDomain, storeName = _a.storeName, xmlName = _a.xmlName, salesChannel = _a.salesChannel;
     return __awaiter(void 0, void 0, void 0, function () {
         var time, file, savedFile;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     time = new Date().getTime();
-                    file = (0, path_1.resolve)("./tmp", storeName + "-" + xmlName + "-" + time + ".xml");
-                    return [4 /*yield*/, (0, download_1.default)("https://" + storeDomain + "/XMLData/" + xmlName + ".xml", file)];
+                    file = (0, path_1.resolve)("./tmp", "".concat(storeName, "-").concat(xmlName, "-").concat(time, ".xml"));
+                    return [4 /*yield*/, (0, download_1.default)("https://".concat(storeDomain, "/XMLData/").concat(xmlName, ".xml?sc=").concat(salesChannel), file)];
                 case 1:
                     savedFile = _b.sent();
                     return [2 /*return*/, savedFile];
@@ -65,6 +65,7 @@ var getRemoteVtexXml = function (_a) {
     });
 };
 var server = http_1.default.createServer(requestHandler_1.default);
+var requestCounter = 0;
 server.on("request", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var headers, method, url, queryObject, fileName, fileNameTransformed, stat, readStream, err_1;
     var _a, _b, _c;
@@ -76,6 +77,8 @@ server.on("request", function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 headers = req.headers, method = req.method, url = req.url;
                 queryObject = url_1.default.parse(url !== null && url !== void 0 ? url : "", true).query;
+                requestCounter = requestCounter + 1;
+                console.log("Request (".concat(requestCounter, ") - START: ").concat(url));
                 _d.label = 1;
             case 1:
                 _d.trys.push([1, 4, , 5]);
@@ -111,11 +114,13 @@ server.on("request", function (req, res) { return __awaiter(void 0, void 0, void
                     err: err_1,
                 }));
                 return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+            case 5:
+                console.log("Request (".concat(requestCounter, ") - END: ").concat(url));
+                return [2 /*return*/];
         }
     });
 }); });
 server.listen(port, function () {
-    console.log("Server up on port " + port);
+    console.log("Server up on port ".concat(port));
 });
 server.timeout = 300000; //  5 minutes

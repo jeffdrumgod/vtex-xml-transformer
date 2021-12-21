@@ -72,12 +72,13 @@ var api = (0, axios_cache_adapter_1.setup)({
 var XmlTransform = function (_a) {
     var storeName = _a.storeName, file = _a.file, regionId = _a.regionId, salesChannel = _a.salesChannel;
     return __awaiter(void 0, void 0, void 0, function () {
-        var xmlData, optionsDecode, jsonObj, newEntries, skuList_1, chunkSize_1, chunks, productDetails_1, optionsEncode, parser, xml, err_1;
+        var xmlData, version, optionsDecode, jsonObj, newEntries, skuList_1, chunkSize_1, chunks, productDetails_1, optionsEncode, parser, xml, err_1;
         var _b, _c, _d, _e, _f;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
                     xmlData = fs_1.default.readFileSync(file, "utf8");
+                    version = require("../package.json").version;
                     optionsDecode = {
                         attributeNamePrefix: "@_",
                         attrNodeName: "attr",
@@ -119,9 +120,9 @@ var XmlTransform = function (_a) {
                             return __generator(this, function (_c) {
                                 switch (_c.label) {
                                     case 0:
-                                        urlSearch = "https://" + storeName + ".myvtex.com/api/catalog_system/pub/products/search/?_from=0&_to=49&" + chunk
-                                            .map(function (i) { return "fq=skuId:" + i; })
-                                            .join("&");
+                                        urlSearch = "https://".concat(storeName, ".myvtex.com/api/catalog_system/pub/products/search/?_from=0&_to=49&").concat(chunk
+                                            .map(function (i) { return "fq=skuId:".concat(i); })
+                                            .join("&"));
                                         return [4 /*yield*/, api.get(urlSearch)];
                                     case 1:
                                         response = (_c.sent());
@@ -186,7 +187,7 @@ var XmlTransform = function (_a) {
                                 // add new params
                                 try {
                                     a = new url_1.URL(link);
-                                    a.searchParams.append("region_id", regionId);
+                                    // a.searchParams.append("region_id", regionId);
                                     a.searchParams.append("sc", salesChannel);
                                     link = a.toString();
                                 }
@@ -197,14 +198,16 @@ var XmlTransform = function (_a) {
                                 // - get details from API
                                 // VTEX doesen't have multiplier in XML: https://help.vtex.com/pt/known-issues/xml-loads-product-price-without-multiplier--3B1Vi8l3gICcqKuqcAoKqI
                                 // if product exist in list to change value
-                                if (productDetails_1.hasOwnProperty("" + id)) {
-                                    sale_price = productDetails_1["" + id].sale_price;
+                                if (productDetails_1.hasOwnProperty("".concat(id))) {
+                                    sale_price = productDetails_1["".concat(id)].sale_price;
                                 }
                                 return [2 /*return*/, __assign(__assign({}, item), { link: {
                                             __cdata: link,
+                                        }, region_id: {
+                                            __cdata: regionId,
                                         }, "g:sale_price": {
                                             __cdata: sale_price,
-                                        }, unitMultiplier: "" + (((_d = productDetails_1 === null || productDetails_1 === void 0 ? void 0 : productDetails_1["" + id]) === null || _d === void 0 ? void 0 : _d.unitMultiplier) || 1) })];
+                                        }, unitMultiplier: "".concat(((_d = productDetails_1 === null || productDetails_1 === void 0 ? void 0 : productDetails_1["".concat(id)]) === null || _d === void 0 ? void 0 : _d.unitMultiplier) || 1) })];
                             });
                         }); }))];
                 case 3:
@@ -233,7 +236,7 @@ var XmlTransform = function (_a) {
                         }, // default is a=>a
                     };
                     parser = new fast_xml_parser_1.default.j2xParser(optionsEncode);
-                    jsonObj.feed.transformedBy = "swift-vtex-xml-transformer";
+                    jsonObj.feed.transformedBy = "vtex-xml-transformer-".concat(version);
                     xml = parser.parse(__assign(__assign({}, jsonObj), { feed: __assign(__assign({}, jsonObj.feed), { entry: newEntries }) }));
                     fs_1.default.writeFileSync(file, xml, "utf8");
                     return [3 /*break*/, 6];
