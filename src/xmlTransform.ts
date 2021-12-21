@@ -22,6 +22,7 @@ const XmlTransform = async ({
   salesChannel: string;
 }): Promise<fs.PathLike> => {
   const xmlData = fs.readFileSync(file, "utf8");
+  const { version } = require("../package.json");
 
   const optionsDecode = {
     attributeNamePrefix: "@_",
@@ -190,7 +191,7 @@ const XmlTransform = async ({
           }), // default is a=>a
       };
       const parser = new FastXmlParser.j2xParser(optionsEncode);
-      jsonObj.feed.transformedBy = "vtex-xml-transformer";
+      jsonObj.feed.transformedBy = `vtex-xml-transformer-${version}`;
       const xml = parser.parse({
         ...jsonObj,
         feed: {
