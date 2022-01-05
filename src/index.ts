@@ -69,6 +69,7 @@ server.on("request", async (req, res) => {
   } catch (err) {
     res.statusCode = 500;
     res.end("Error");
+    console.log(err);
     console.log(
       "ERR:",
       JSON.stringify({

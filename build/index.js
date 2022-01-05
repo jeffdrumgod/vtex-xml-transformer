@@ -107,6 +107,7 @@ server.on("request", function (req, res) { return __awaiter(void 0, void 0, void
                 err_1 = _d.sent();
                 res.statusCode = 500;
                 res.end("Error");
+                console.log(err_1);
                 console.log("ERR:", JSON.stringify({
                     headers: headers,
                     method: method,

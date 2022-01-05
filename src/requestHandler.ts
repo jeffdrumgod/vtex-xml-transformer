@@ -1,6 +1,10 @@
 import http from "http";
 import Url from "url";
 
+const { version } = require(process.env.NODE_ENV === "production"
+  ? "./package.json"
+  : "../package.json");
+
 const RequestHandler = (
   req: http.IncomingMessage,
   res: http.ServerResponse
@@ -18,7 +22,7 @@ const RequestHandler = (
 
   if (urlParsed?.pathname === "/status") {
     res.statusCode = 200;
-    res.end("ok");
+    res.end(`ok - ${version}`);
     return;
   }
 

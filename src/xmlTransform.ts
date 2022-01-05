@@ -4,6 +4,10 @@ import He from "he";
 import { setup } from "axios-cache-adapter";
 import { URL } from "url";
 
+const { version } = require(process.env.NODE_ENV === "production"
+  ? "./package.json"
+  : "../package.json");
+
 const api = setup({
   cache: {
     maxAge: 30 * 60 * 1000,
@@ -22,7 +26,6 @@ const XmlTransform = async ({
   salesChannel: string;
 }): Promise<fs.PathLike> => {
   const xmlData = fs.readFileSync(file, "utf8");
-  const { version } = require("../package.json");
 
   const optionsDecode = {
     attributeNamePrefix: "@_",

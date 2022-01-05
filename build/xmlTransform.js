@@ -64,6 +64,9 @@ var fast_xml_parser_1 = __importDefault(require("fast-xml-parser"));
 var he_1 = __importDefault(require("he"));
 var axios_cache_adapter_1 = require("axios-cache-adapter");
 var url_1 = require("url");
+var version = require(process.env.NODE_ENV === "production"
+    ? "./package.json"
+    : "../package.json").version;
 var api = (0, axios_cache_adapter_1.setup)({
     cache: {
         maxAge: 30 * 60 * 1000,
@@ -72,13 +75,12 @@ var api = (0, axios_cache_adapter_1.setup)({
 var XmlTransform = function (_a) {
     var storeName = _a.storeName, file = _a.file, regionId = _a.regionId, salesChannel = _a.salesChannel;
     return __awaiter(void 0, void 0, void 0, function () {
-        var xmlData, version, optionsDecode, jsonObj, newEntries, skuList_1, chunkSize_1, chunks, productDetails_1, optionsEncode, parser, xml, err_1;
+        var xmlData, optionsDecode, jsonObj, newEntries, skuList_1, chunkSize_1, chunks, productDetails_1, optionsEncode, parser, xml, err_1;
         var _b, _c, _d, _e, _f;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
                     xmlData = fs_1.default.readFileSync(file, "utf8");
-                    version = require("../package.json").version;
                     optionsDecode = {
                         attributeNamePrefix: "@_",
                         attrNodeName: "attr",

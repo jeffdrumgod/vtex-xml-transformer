@@ -4,6 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var url_1 = __importDefault(require("url"));
+var version = require(process.env.NODE_ENV === "production"
+    ? "./package.json"
+    : "../package.json").version;
 var RequestHandler = function (req, res) {
     var _a;
     var urlParsed = url_1.default.parse((_a = req === null || req === void 0 ? void 0 : req.url) !== null && _a !== void 0 ? _a : "", true);
@@ -16,7 +19,7 @@ var RequestHandler = function (req, res) {
     }
     if ((urlParsed === null || urlParsed === void 0 ? void 0 : urlParsed.pathname) === "/status") {
         res.statusCode = 200;
-        res.end("ok");
+        res.end("ok - ".concat(version));
         return;
     }
     if ((urlParsed === null || urlParsed === void 0 ? void 0 : urlParsed.pathname) === "/xml-parse") {
