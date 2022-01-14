@@ -195,6 +195,9 @@ const XmlTransform = async ({
       };
       const parser = new FastXmlParser.j2xParser(optionsEncode);
       jsonObj.feed.transformedBy = `vtex-xml-transformer-${version}`;
+      jsonObj.feed.region_id = {
+        __cdata: regionId,
+      };
       const xml = parser.parse({
         ...jsonObj,
         feed: {

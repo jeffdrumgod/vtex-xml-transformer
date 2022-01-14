@@ -239,6 +239,9 @@ var XmlTransform = function (_a) {
                     };
                     parser = new fast_xml_parser_1.default.j2xParser(optionsEncode);
                     jsonObj.feed.transformedBy = "vtex-xml-transformer-".concat(version);
+                    jsonObj.feed.region_id = {
+                        __cdata: regionId,
+                    };
                     xml = parser.parse(__assign(__assign({}, jsonObj), { feed: __assign(__assign({}, jsonObj.feed), { entry: newEntries }) }));
                     fs_1.default.writeFileSync(file, xml, "utf8");
                     return [3 /*break*/, 6];
