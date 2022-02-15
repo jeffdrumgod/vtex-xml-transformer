@@ -73,19 +73,19 @@ var api = (0, axios_cache_adapter_1.setup)({
     },
 });
 var XmlTransform = function (_a) {
-    var storeName = _a.storeName, file = _a.file, regionId = _a.regionId, salesChannel = _a.salesChannel;
+    var storeName = _a.storeName, file = _a.file, regionId = _a.regionId, salesChannel = _a.salesChannel, _b = _a.complete, complete = _b === void 0 ? false : _b;
     return __awaiter(void 0, void 0, void 0, function () {
-        var xmlData, optionsDecode, jsonObj, newEntries, skuList_1, chunkSize_1, chunks, productDetails_1, optionsEncode, parser, xml, err_1;
-        var _b, _c, _d, _e, _f;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
+        var xmlData, optionsDecode, jsonObj, newEntries, skuList_1, chunkSize_1, chunks, productDetails_1, optionsEncode, parser, newXmlObj, xml, err_1;
+        var _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        return __generator(this, function (_m) {
+            switch (_m.label) {
                 case 0:
                     xmlData = fs_1.default.readFileSync(file, "utf8");
                     optionsDecode = {
                         attributeNamePrefix: "@_",
-                        attrNodeName: "attr",
+                        // attrNodeName: "attr", //default is 'false'
                         textNodeName: "#text",
-                        ignoreAttributes: true,
+                        ignoreAttributes: false,
                         ignoreNameSpace: false,
                         allowBooleanAttributes: false,
                         parseNodeValue: true,
@@ -106,14 +106,14 @@ var XmlTransform = function (_a) {
                         tagValueProcessor: function (val, tagName) { return he_1.default.decode(val); }, //default is a=>a
                         // stopNodes: ["parse-me-as-string"],
                     };
-                    if (!(fast_xml_parser_1.default.validate(xmlData) === true)) return [3 /*break*/, 6];
-                    _g.label = 1;
+                    if (!(fast_xml_parser_1.default.validate(xmlData) === true)) return [3 /*break*/, 8];
+                    _m.label = 1;
                 case 1:
-                    _g.trys.push([1, 5, , 6]);
+                    _m.trys.push([1, 6, , 7]);
                     jsonObj = fast_xml_parser_1.default.parse(xmlData, optionsDecode);
-                    newEntries = (_b = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.feed) === null || _b === void 0 ? void 0 : _b.entry;
-                    if (!((_d = (_c = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.feed) === null || _c === void 0 ? void 0 : _c.entry) === null || _d === void 0 ? void 0 : _d.length)) return [3 /*break*/, 4];
-                    skuList_1 = (_e = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.feed) === null || _e === void 0 ? void 0 : _e.entry.map(function (item) { var _a; return (_a = item === null || item === void 0 ? void 0 : item.id) === null || _a === void 0 ? void 0 : _a.__cdata; });
+                    newEntries = (_d = (_c = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.rss) === null || _c === void 0 ? void 0 : _c.channel) === null || _d === void 0 ? void 0 : _d.item;
+                    if (!((_g = (_f = (_e = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.rss) === null || _e === void 0 ? void 0 : _e.channel) === null || _f === void 0 ? void 0 : _f.item) === null || _g === void 0 ? void 0 : _g.length)) return [3 /*break*/, 4];
+                    skuList_1 = (_j = (_h = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.rss) === null || _h === void 0 ? void 0 : _h.channel) === null || _j === void 0 ? void 0 : _j.item.map(function (item) { var _a; return (_a = item === null || item === void 0 ? void 0 : item["g:id"]) === null || _a === void 0 ? void 0 : _a.__cdata; });
                     chunkSize_1 = 50;
                     chunks = __spreadArray([], Array(Math.ceil(skuList_1.length / chunkSize_1)), true).map(function (_) { return skuList_1.splice(0, chunkSize_1); });
                     return [4 /*yield*/, Promise.all(chunks.map(function (chunk) { return __awaiter(void 0, void 0, void 0, function () {
@@ -129,6 +129,7 @@ var XmlTransform = function (_a) {
                                     case 1:
                                         response = (_c.sent());
                                         if (!((_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.length)) {
+                                            console.log("API response is empty for ".concat(urlSearch));
                                             return [2 /*return*/, []];
                                         }
                                         return [2 /*return*/, (_b = response.data) === null || _b === void 0 ? void 0 : _b.reduce(function (stack, product) {
@@ -141,21 +142,24 @@ var XmlTransform = function (_a) {
                                                     });
                                                     var sale_price = (_a = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _a === void 0 ? void 0 : _a.Price;
                                                     if (seller) {
-                                                        sale_price =
-                                                            ((_b = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _b === void 0 ? void 0 : _b.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier);
-                                                        if (!isNaN(sale_price)) {
-                                                            sale_price = sale_price.toLocaleString("pt-BR", {
-                                                                style: "currency",
-                                                                currency: "BRL",
-                                                            });
-                                                        }
-                                                        else {
+                                                        sale_price = (((_b = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _b === void 0 ? void 0 : _b.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
+                                                        if (isNaN(sale_price)) {
                                                             sale_price =
-                                                                (_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.Price.toLocaleString("pt-BR", {
-                                                                    style: "currency",
-                                                                    currency: "BRL",
-                                                                });
+                                                                ((_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.Price).toFixed(2);
+                                                            // seller?.commertialOffer?.Price.toLocaleString(
+                                                            //   "pt-BR",
+                                                            //   {
+                                                            //     style: "currency",
+                                                            //     currency: "BRL",
+                                                            //   }
+                                                            // );
                                                         }
+                                                        // else {
+                                                        //   sale_price = sale_price.toLocaleString("pt-BR", {
+                                                        //     style: "currency",
+                                                        //     currency: "BRL",
+                                                        //   });
+                                                        // }
                                                     }
                                                     return {
                                                         itemId: itemId,
@@ -168,24 +172,23 @@ var XmlTransform = function (_a) {
                             });
                         }); }))];
                 case 2:
-                    productDetails_1 = (_g.sent())
+                    productDetails_1 = (_m.sent())
                         .reduce(function (stack, group) {
                         return stack.concat(group);
                     }, [])
                         .reduce(function (stack, item) {
                         var _a;
-                        if (item.unitMultiplier !== 1) {
-                            Object.assign(stack, (_a = {}, _a[item.itemId] = item, _a));
-                        }
+                        Object.assign(stack, (_a = {}, _a[item.itemId] = item, _a));
                         return stack;
                     }, {});
-                    return [4 /*yield*/, Promise.all((_f = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.feed) === null || _f === void 0 ? void 0 : _f.entry.map(function (item, index) { return __awaiter(void 0, void 0, void 0, function () {
-                            var link, sale_price, id, a;
-                            var _a, _b, _c, _d;
-                            return __generator(this, function (_e) {
-                                link = (_a = item === null || item === void 0 ? void 0 : item.link) === null || _a === void 0 ? void 0 : _a.__cdata;
+                    fs_1.default.writeFileSync("products.json", JSON.stringify(productDetails_1), "utf8");
+                    return [4 /*yield*/, Promise.all((_l = (_k = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.rss) === null || _k === void 0 ? void 0 : _k.channel) === null || _l === void 0 ? void 0 : _l.item.map(function (item, index) { return __awaiter(void 0, void 0, void 0, function () {
+                            var link, sale_price, id, a, availability;
+                            var _a, _b, _c;
+                            return __generator(this, function (_d) {
+                                link = (_a = item === null || item === void 0 ? void 0 : item["g:link"]) === null || _a === void 0 ? void 0 : _a.__cdata;
                                 sale_price = (_b = item === null || item === void 0 ? void 0 : item["g:sale_price"]) === null || _b === void 0 ? void 0 : _b.__cdata;
-                                id = (_c = item === null || item === void 0 ? void 0 : item.id) === null || _c === void 0 ? void 0 : _c.__cdata;
+                                id = (_c = item === null || item === void 0 ? void 0 : item["g:id"]) === null || _c === void 0 ? void 0 : _c.__cdata;
                                 // add new params
                                 try {
                                     a = new url_1.URL(link);
@@ -194,6 +197,7 @@ var XmlTransform = function (_a) {
                                     link = a.toString();
                                 }
                                 catch (e) {
+                                    // @ts-ignore
                                     console.log(e === null || e === void 0 ? void 0 : e.message);
                                 }
                                 // OMG, this is a hack, but it works
@@ -203,27 +207,62 @@ var XmlTransform = function (_a) {
                                 if (productDetails_1.hasOwnProperty("".concat(id))) {
                                     sale_price = productDetails_1["".concat(id)].sale_price;
                                 }
-                                return [2 /*return*/, __assign(__assign({}, item), { link: {
-                                            __cdata: link,
-                                        }, region_id: {
-                                            __cdata: regionId,
-                                        }, "g:sale_price": {
-                                            __cdata: sale_price,
-                                        }, unitMultiplier: "".concat(((_d = productDetails_1 === null || productDetails_1 === void 0 ? void 0 : productDetails_1["".concat(id)]) === null || _d === void 0 ? void 0 : _d.unitMultiplier) || 1) })];
+                                else {
+                                    console.log("SKU id ".concat(id, " no found in API"));
+                                }
+                                availability = "in stock";
+                                if (item["g:availability"].__cdata !== "disponível") {
+                                    availability = "out of stock";
+                                }
+                                if (complete) {
+                                    return [2 /*return*/, __assign(__assign({}, item), { "g:link": {
+                                                __cdata: link,
+                                            }, region_id: {
+                                                __cdata: regionId,
+                                            }, "g:sale_price": {
+                                                __cdata: sale_price,
+                                            }, "g:availability": {
+                                                __cdata: availability,
+                                            } })];
+                                }
+                                else {
+                                    return [2 /*return*/, {
+                                            "g:availability": {
+                                                __cdata: availability,
+                                            },
+                                            "g:id": {
+                                                __cdata: item["g:id"].__cdata,
+                                            },
+                                            "g:link": {
+                                                __cdata: link,
+                                            },
+                                            region_id: {
+                                                __cdata: regionId,
+                                            },
+                                            "g:sale_price": {
+                                                __cdata: sale_price,
+                                            },
+                                        }];
+                                }
+                                return [2 /*return*/];
                             });
                         }); }))];
                 case 3:
-                    newEntries = _g.sent();
-                    _g.label = 4;
+                    newEntries = _m.sent();
+                    return [3 /*break*/, 5];
                 case 4:
+                    console.log("root node <rss> not exist in this XML");
+                    _m.label = 5;
+                case 5:
                     optionsEncode = {
                         attributeNamePrefix: "@_",
-                        attrNodeName: "@",
-                        textNodeName: "#text",
-                        ignoreAttributes: true,
+                        // attrNodeName: "@", //default is false
+                        // textNodeName: "#text",
+                        ignoreAttributes: false,
+                        ignoreNameSpace: false,
                         cdataTagName: "__cdata",
                         cdataPositionChar: "\\c",
-                        format: false,
+                        format: true,
                         indentBy: "  ",
                         supressEmptyNode: false,
                         tagValueProcessor: function (a) {
@@ -232,24 +271,30 @@ var XmlTransform = function (_a) {
                         attrValueProcessor: function (a) {
                             return he_1.default.encode(a, {
                                 // @ts-ignore
-                                isAttributeValue: isAttribute,
+                                isAttributeValue: true,
                                 useNamedReferences: true,
                             });
                         }, // default is a=>a
                     };
                     parser = new fast_xml_parser_1.default.j2xParser(optionsEncode);
-                    jsonObj.feed.transformedBy = "vtex-xml-transformer-".concat(version);
-                    jsonObj.feed.region_id = {
-                        __cdata: regionId,
-                    };
-                    xml = parser.parse(__assign(__assign({}, jsonObj), { feed: __assign(__assign({}, jsonObj.feed), { entry: newEntries }) }));
-                    fs_1.default.writeFileSync(file, xml, "utf8");
-                    return [3 /*break*/, 6];
-                case 5:
-                    err_1 = _g.sent();
+                    jsonObj["@_xml"] = "1.0";
+                    jsonObj.rss["@_transformedBy"] = "vtex-xml-transformer-".concat(version);
+                    jsonObj.rss["@_region_id"] = regionId;
+                    newXmlObj = __assign({}, jsonObj);
+                    newXmlObj.rss.channel = __assign(__assign({}, jsonObj.rss.channel), { item: newEntries });
+                    xml = parser.parse(newXmlObj);
+                    fs_1.default.writeFileSync(file, "<?xml version=\"1.0\"?>".concat(xml), "utf8");
+                    return [3 /*break*/, 7];
+                case 6:
+                    err_1 = _m.sent();
+                    // @ts-ignore
                     console.log(err_1 === null || err_1 === void 0 ? void 0 : err_1.message);
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/, file];
+                    return [3 /*break*/, 7];
+                case 7: return [3 /*break*/, 9];
+                case 8:
+                    console.log("XMLData is not valid XML");
+                    _m.label = 9;
+                case 9: return [2 /*return*/, file];
             }
         });
     });

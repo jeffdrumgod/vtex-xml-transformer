@@ -90,6 +90,7 @@ server.on("request", function (req, res) { return __awaiter(void 0, void 0, void
                         storeName: ((_a = queryObject === null || queryObject === void 0 ? void 0 : queryObject.storeName) !== null && _a !== void 0 ? _a : ""),
                         regionId: ((_b = queryObject === null || queryObject === void 0 ? void 0 : queryObject.regionId) !== null && _b !== void 0 ? _b : ""),
                         salesChannel: ((_c = queryObject === null || queryObject === void 0 ? void 0 : queryObject.salesChannel) !== null && _c !== void 0 ? _c : ""),
+                        complete: !!(queryObject === null || queryObject === void 0 ? void 0 : queryObject.complete),
                     })];
             case 3:
                 fileNameTransformed = _d.sent();

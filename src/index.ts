@@ -55,6 +55,7 @@ server.on("request", async (req, res) => {
       storeName: (queryObject?.storeName ?? "") as string,
       regionId: (queryObject?.regionId ?? "") as string,
       salesChannel: (queryObject?.salesChannel ?? "") as string,
+      complete: !!queryObject?.complete,
     });
     var stat = fs.statSync(fileNameTransformed);
 

@@ -19,19 +19,21 @@ const XmlTransform = async ({
   file,
   regionId,
   salesChannel,
+  complete = false,
 }: {
   storeName: string;
   file: fs.PathLike;
   regionId: string;
   salesChannel: string;
+  complete: boolean;
 }): Promise<fs.PathLike> => {
   const xmlData = fs.readFileSync(file, "utf8");
 
   const optionsDecode = {
     attributeNamePrefix: "@_",
-    attrNodeName: "attr", //default is 'false'
+    // attrNodeName: "attr", //default is 'false'
     textNodeName: "#text",
-    ignoreAttributes: true,
+    ignoreAttributes: false,
     ignoreNameSpace: false,
     allowBooleanAttributes: false,
     parseNodeValue: true,
@@ -55,10 +57,10 @@ const XmlTransform = async ({
   if (FastXmlParser.validate(xmlData) === true) {
     try {
       const jsonObj = FastXmlParser.parse(xmlData, optionsDecode);
-      let newEntries = jsonObj?.feed?.entry;
-      if (jsonObj?.feed?.entry?.length) {
-        const skuList = jsonObj?.feed?.entry.map(
-          (item: any) => item?.id?.__cdata
+      let newEntries = jsonObj?.rss?.channel?.item;
+      if (jsonObj?.rss?.channel?.item?.length) {
+        const skuList = jsonObj?.rss?.channel?.item.map(
+          (item: any) => item?.["g:id"]?.__cdata
         );
 
         const chunkSize = 50;
@@ -76,6 +78,7 @@ const XmlTransform = async ({
               const response = (await api.get(urlSearch)) as any;
 
               if (!response?.data?.length) {
+                console.log(`API response is empty for ${urlSearch}`);
                 return [];
               }
 
@@ -83,30 +86,35 @@ const XmlTransform = async ({
                 return stack.concat(
                   product.items.map((sku: any) => {
                     const { unitMultiplier, sellers, itemId } = sku;
+
                     const seller = sellers?.find(
                       ({ sellerDefault }: any) => !!sellerDefault
                     );
+
                     let sale_price = seller?.commertialOffer?.Price;
 
                     if (seller) {
-                      sale_price =
-                        seller?.commertialOffer?.Price * +sku?.unitMultiplier;
+                      sale_price = (
+                        seller?.commertialOffer?.Price * +sku?.unitMultiplier
+                      ).toFixed(2);
 
-                      if (!isNaN(sale_price)) {
-                        sale_price = sale_price.toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        });
-                      } else {
+                      if (isNaN(sale_price)) {
                         sale_price =
-                          seller?.commertialOffer?.Price.toLocaleString(
-                            "pt-BR",
-                            {
-                              style: "currency",
-                              currency: "BRL",
-                            }
-                          );
+                          (seller?.commertialOffer?.Price).toFixed(2);
+                        // seller?.commertialOffer?.Price.toLocaleString(
+                        //   "pt-BR",
+                        //   {
+                        //     style: "currency",
+                        //     currency: "BRL",
+                        //   }
+                        // );
                       }
+                      // else {
+                      //   sale_price = sale_price.toLocaleString("pt-BR", {
+                      //     style: "currency",
+                      //     currency: "BRL",
+                      //   });
+                      // }
                     }
 
                     return {
@@ -124,17 +132,21 @@ const XmlTransform = async ({
             return stack.concat(group);
           }, [])
           .reduce((stack: any, item: any) => {
-            if (item.unitMultiplier !== 1) {
-              Object.assign(stack, { [item.itemId]: item });
-            }
+            Object.assign(stack, { [item.itemId]: item });
             return stack;
           }, {});
 
+        fs.writeFileSync(
+          "products.json",
+          JSON.stringify(productDetails),
+          "utf8"
+        );
+
         newEntries = await Promise.all(
-          jsonObj?.feed?.entry.map(async (item: any, index: number) => {
-            let link = item?.link?.__cdata;
+          jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
+            let link = item?.["g:link"]?.__cdata;
             let sale_price = item?.["g:sale_price"]?.__cdata;
-            const id = item?.id?.__cdata;
+            const id = item?.["g:id"]?.__cdata;
 
             // add new params
             try {
@@ -143,6 +155,7 @@ const XmlTransform = async ({
               a.searchParams.append("sc", salesChannel);
               link = a.toString();
             } catch (e: any) {
+              // @ts-ignore
               console.log(e?.message);
             }
 
@@ -153,35 +166,65 @@ const XmlTransform = async ({
             // if product exist in list to change value
             if (productDetails.hasOwnProperty(`${id}`)) {
               sale_price = productDetails[`${id}`].sale_price;
+            } else {
+              console.log(`SKU id ${id} no found in API`);
             }
 
-            return {
-              ...item,
-              link: {
-                __cdata: link,
-              },
-              region_id: {
-                __cdata: regionId,
-              },
-              "g:sale_price": {
-                __cdata: sale_price,
-              },
-              unitMultiplier: `${
-                productDetails?.[`${id}`]?.unitMultiplier || 1
-              }`,
-            };
+            let availability = "in stock";
+            if (item["g:availability"].__cdata !== "disponível") {
+              availability = "out of stock";
+            }
+
+            if (complete) {
+              return {
+                ...item,
+                "g:link": {
+                  __cdata: link,
+                },
+                region_id: {
+                  __cdata: regionId,
+                },
+                "g:sale_price": {
+                  __cdata: sale_price,
+                },
+                "g:availability": {
+                  __cdata: availability,
+                },
+              };
+            } else {
+              return {
+                "g:availability": {
+                  __cdata: availability,
+                },
+                "g:id": {
+                  __cdata: item["g:id"].__cdata,
+                },
+                "g:link": {
+                  __cdata: link,
+                },
+                region_id: {
+                  __cdata: regionId,
+                },
+                "g:sale_price": {
+                  __cdata: sale_price,
+                },
+              };
+            }
           })
         );
+      } else {
+        console.log("root node <rss> not exist in this XML");
       }
 
       const optionsEncode = {
         attributeNamePrefix: "@_",
-        attrNodeName: "@", //default is false
-        textNodeName: "#text",
-        ignoreAttributes: true,
+        // attrNodeName: "@", //default is false
+        // textNodeName: "#text",
+        ignoreAttributes: false,
+        ignoreNameSpace: false,
         cdataTagName: "__cdata", //default is false
         cdataPositionChar: "\\c",
-        format: false,
+        format: true,
         indentBy: "  ",
         supressEmptyNode: false,
         tagValueProcessor: (a: string) =>
@@ -189,27 +232,31 @@ const XmlTransform = async ({
         attrValueProcessor: (a: string) =>
           He.encode(a, {
             // @ts-ignore
-            isAttributeValue: isAttribute,
+            isAttributeValue: true,
             useNamedReferences: true,
           }), // default is a=>a
       };
       const parser = new FastXmlParser.j2xParser(optionsEncode);
-      jsonObj.feed.transformedBy = `vtex-xml-transformer-${version}`;
-      jsonObj.feed.region_id = {
-        __cdata: regionId,
-      };
-      const xml = parser.parse({
+      jsonObj["@_xml"] = "1.0";
+      jsonObj.rss["@_transformedBy"] = `vtex-xml-transformer-${version}`;
+      jsonObj.rss["@_region_id"] = regionId;
+      const newXmlObj = {
         ...jsonObj,
-        feed: {
-          ...jsonObj.feed,
-          entry: newEntries,
-        },
-      });
+      };
+      newXmlObj.rss.channel = {
+        ...jsonObj.rss.channel,
+        item: newEntries,
+      };
 
-      fs.writeFileSync(file, xml, "utf8");
+      const xml = parser.parse(newXmlObj);
+
+      fs.writeFileSync(file, `<?xml version="1.0"?>${xml}`, "utf8");
     } catch (err: any) {
+      // @ts-ignore
       console.log(err?.message);
     }
+  } else {
+    console.log("XMLData is not valid XML");
   }
 
   return file;
