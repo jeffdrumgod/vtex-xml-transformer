@@ -134,36 +134,30 @@ var XmlTransform = function (_a) {
                                         }
                                         return [2 /*return*/, (_b = response.data) === null || _b === void 0 ? void 0 : _b.reduce(function (stack, product) {
                                                 return stack.concat(product.items.map(function (sku) {
-                                                    var _a, _b, _c;
+                                                    var _a, _b, _c, _d, _e, _f;
                                                     var unitMultiplier = sku.unitMultiplier, sellers = sku.sellers, itemId = sku.itemId;
                                                     var seller = sellers === null || sellers === void 0 ? void 0 : sellers.find(function (_a) {
                                                         var sellerDefault = _a.sellerDefault;
                                                         return !!sellerDefault;
                                                     });
-                                                    var sale_price = (_a = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _a === void 0 ? void 0 : _a.Price;
+                                                    var price = (_a = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _a === void 0 ? void 0 : _a.ListPrice;
+                                                    var sale_price = (_b = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _b === void 0 ? void 0 : _b.Price;
                                                     if (seller) {
-                                                        sale_price = (((_b = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _b === void 0 ? void 0 : _b.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
+                                                        price = (((_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.ListPrice) *
+                                                            +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
+                                                        sale_price = (((_d = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _d === void 0 ? void 0 : _d.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
+                                                        if (isNaN(price)) {
+                                                            price = ((_e = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _e === void 0 ? void 0 : _e.ListPrice).toFixed(2);
+                                                        }
                                                         if (isNaN(sale_price)) {
                                                             sale_price =
-                                                                ((_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.Price).toFixed(2);
-                                                            // seller?.commertialOffer?.Price.toLocaleString(
-                                                            //   "pt-BR",
-                                                            //   {
-                                                            //     style: "currency",
-                                                            //     currency: "BRL",
-                                                            //   }
-                                                            // );
+                                                                ((_f = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _f === void 0 ? void 0 : _f.Price).toFixed(2);
                                                         }
-                                                        // else {
-                                                        //   sale_price = sale_price.toLocaleString("pt-BR", {
-                                                        //     style: "currency",
-                                                        //     currency: "BRL",
-                                                        //   });
-                                                        // }
                                                     }
                                                     return {
                                                         itemId: itemId,
                                                         unitMultiplier: unitMultiplier,
+                                                        price: price,
                                                         sale_price: sale_price,
                                                     };
                                                 }));
@@ -183,12 +177,13 @@ var XmlTransform = function (_a) {
                     }, {});
                     fs_1.default.writeFileSync("products.json", JSON.stringify(productDetails_1), "utf8");
                     return [4 /*yield*/, Promise.all((_l = (_k = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.rss) === null || _k === void 0 ? void 0 : _k.channel) === null || _l === void 0 ? void 0 : _l.item.map(function (item, index) { return __awaiter(void 0, void 0, void 0, function () {
-                            var link, sale_price, id, a, availability;
-                            var _a, _b, _c;
-                            return __generator(this, function (_d) {
+                            var link, price, sale_price, id, a, availability;
+                            var _a, _b, _c, _d;
+                            return __generator(this, function (_e) {
                                 link = (_a = item === null || item === void 0 ? void 0 : item["g:link"]) === null || _a === void 0 ? void 0 : _a.__cdata;
-                                sale_price = (_b = item === null || item === void 0 ? void 0 : item["g:sale_price"]) === null || _b === void 0 ? void 0 : _b.__cdata;
-                                id = (_c = item === null || item === void 0 ? void 0 : item["g:id"]) === null || _c === void 0 ? void 0 : _c.__cdata;
+                                price = (_b = item === null || item === void 0 ? void 0 : item["g:price"]) === null || _b === void 0 ? void 0 : _b.__cdata;
+                                sale_price = (_c = item === null || item === void 0 ? void 0 : item["g:sale_price"]) === null || _c === void 0 ? void 0 : _c.__cdata;
+                                id = (_d = item === null || item === void 0 ? void 0 : item["g:id"]) === null || _d === void 0 ? void 0 : _d.__cdata;
                                 // add new params
                                 try {
                                     a = new url_1.URL(link);
@@ -206,6 +201,7 @@ var XmlTransform = function (_a) {
                                 // if product exist in list to change value
                                 if (productDetails_1.hasOwnProperty("".concat(id))) {
                                     sale_price = productDetails_1["".concat(id)].sale_price;
+                                    price = productDetails_1["".concat(id)].price;
                                 }
                                 else {
                                     console.log("SKU id ".concat(id, " no found in API"));
@@ -217,10 +213,12 @@ var XmlTransform = function (_a) {
                                 if (complete) {
                                     return [2 /*return*/, __assign(__assign({}, item), { "g:link": {
                                                 __cdata: link,
-                                            }, region_id: {
+                                            }, "g:region_id": {
                                                 __cdata: regionId,
+                                            }, "g:price": {
+                                                __cdata: "".concat(price, " BRL"),
                                             }, "g:sale_price": {
-                                                __cdata: sale_price,
+                                                __cdata: "".concat(sale_price, " BRL"),
                                             }, "g:availability": {
                                                 __cdata: availability,
                                             } })];
@@ -236,11 +234,14 @@ var XmlTransform = function (_a) {
                                             "g:link": {
                                                 __cdata: link,
                                             },
-                                            region_id: {
+                                            "g:region_id": {
                                                 __cdata: regionId,
                                             },
+                                            "g:price": {
+                                                __cdata: "".concat(price, " BRL"),
+                                            },
                                             "g:sale_price": {
-                                                __cdata: sale_price,
+                                                __cdata: "".concat(sale_price, " BRL"),
                                             },
                                         }];
                                 }

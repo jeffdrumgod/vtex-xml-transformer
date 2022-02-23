@@ -91,35 +91,33 @@ const XmlTransform = async ({
                       ({ sellerDefault }: any) => !!sellerDefault
                     );
 
+                    let price = seller?.commertialOffer?.ListPrice;
                     let sale_price = seller?.commertialOffer?.Price;
 
                     if (seller) {
+                      price = (
+                        seller?.commertialOffer?.ListPrice *
+                        +sku?.unitMultiplier
+                      ).toFixed(2);
+
                       sale_price = (
                         seller?.commertialOffer?.Price * +sku?.unitMultiplier
                       ).toFixed(2);
 
+                      if (isNaN(price)) {
+                        price = (seller?.commertialOffer?.ListPrice).toFixed(2);
+                      }
+
                       if (isNaN(sale_price)) {
                         sale_price =
                           (seller?.commertialOffer?.Price).toFixed(2);
-                        // seller?.commertialOffer?.Price.toLocaleString(
-                        //   "pt-BR",
-                        //   {
-                        //     style: "currency",
-                        //     currency: "BRL",
-                        //   }
-                        // );
                       }
-                      // else {
-                      //   sale_price = sale_price.toLocaleString("pt-BR", {
-                      //     style: "currency",
-                      //     currency: "BRL",
-                      //   });
-                      // }
                     }
 
                     return {
                       itemId,
                       unitMultiplier,
+                      price,
                       sale_price,
                     };
                   })
@@ -145,6 +143,7 @@ const XmlTransform = async ({
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
             let link = item?.["g:link"]?.__cdata;
+            let price = item?.["g:price"]?.__cdata;
             let sale_price = item?.["g:sale_price"]?.__cdata;
             const id = item?.["g:id"]?.__cdata;
 
@@ -166,6 +165,7 @@ const XmlTransform = async ({
             // if product exist in list to change value
             if (productDetails.hasOwnProperty(`${id}`)) {
               sale_price = productDetails[`${id}`].sale_price;
+              price = productDetails[`${id}`].price;
             } else {
               console.log(`SKU id ${id} no found in API`);
             }
@@ -181,11 +181,14 @@ const XmlTransform = async ({
                 "g:link": {
                   __cdata: link,
                 },
-                region_id: {
+                "g:region_id": {
                   __cdata: regionId,
                 },
+                "g:price": {
+                  __cdata: `${price} BRL`,
+                },
                 "g:sale_price": {
-                  __cdata: sale_price,
+                  __cdata: `${sale_price} BRL`,
                 },
                 "g:availability": {
                   __cdata: availability,
@@ -202,11 +205,14 @@ const XmlTransform = async ({
                 "g:link": {
                   __cdata: link,
                 },
-                region_id: {
+                "g:region_id": {
                   __cdata: regionId,
                 },
+                "g:price": {
+                  __cdata: `${price} BRL`,
+                },
                 "g:sale_price": {
-                  __cdata: sale_price,
+                  __cdata: `${sale_price} BRL`,
                 },
               };
             }
