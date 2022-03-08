@@ -124,7 +124,7 @@ var XmlTransform = function (_a) {
                                     case 0:
                                         urlSearch = "https://".concat(storeName, ".myvtex.com/api/catalog_system/pub/products/search/?_from=0&_to=49&").concat(chunk
                                             .map(function (i) { return "fq=skuId:".concat(i); })
-                                            .join("&"));
+                                            .join("&"), "&sc=").concat(salesChannel);
                                         return [4 /*yield*/, api.get(urlSearch)];
                                     case 1:
                                         response = (_c.sent());

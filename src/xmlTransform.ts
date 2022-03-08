@@ -73,7 +73,7 @@ const XmlTransform = async ({
             chunks.map(async (chunk: string[]) => {
               const urlSearch = `https://${storeName}.myvtex.com/api/catalog_system/pub/products/search/?_from=0&_to=49&${chunk
                 .map((i) => `fq=skuId:${i}`)
-                .join("&")}`;
+                .join("&")}&sc=${salesChannel}`;
 
               const response = (await api.get(urlSearch)) as any;
 
@@ -86,7 +86,6 @@ const XmlTransform = async ({
                 return stack.concat(
                   product.items.map((sku: any) => {
                     const { unitMultiplier, sellers, itemId } = sku;
-
                     const seller = sellers?.find(
                       ({ sellerDefault }: any) => !!sellerDefault
                     );
