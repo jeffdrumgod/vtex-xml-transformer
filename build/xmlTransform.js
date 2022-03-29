@@ -134,7 +134,7 @@ var XmlTransform = function (_a) {
                                         }
                                         return [2 /*return*/, (_b = response.data) === null || _b === void 0 ? void 0 : _b.reduce(function (stack, product) {
                                                 return stack.concat(product.items.map(function (sku) {
-                                                    var _a, _b, _c, _d, _e, _f;
+                                                    var _a, _b, _c, _d, _e, _f, _g;
                                                     var unitMultiplier = sku.unitMultiplier, sellers = sku.sellers, itemId = sku.itemId;
                                                     var seller = sellers === null || sellers === void 0 ? void 0 : sellers.find(function (_a) {
                                                         var sellerDefault = _a.sellerDefault;
@@ -142,16 +142,17 @@ var XmlTransform = function (_a) {
                                                     });
                                                     var price = (_a = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _a === void 0 ? void 0 : _a.ListPrice;
                                                     var sale_price = (_b = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _b === void 0 ? void 0 : _b.Price;
+                                                    var availability = (_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.IsAvailable;
                                                     if (seller) {
-                                                        price = (((_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.ListPrice) *
+                                                        price = (((_d = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _d === void 0 ? void 0 : _d.ListPrice) *
                                                             +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
-                                                        sale_price = (((_d = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _d === void 0 ? void 0 : _d.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
+                                                        sale_price = (((_e = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _e === void 0 ? void 0 : _e.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
                                                         if (isNaN(price)) {
-                                                            price = ((_e = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _e === void 0 ? void 0 : _e.ListPrice).toFixed(2);
+                                                            price = ((_f = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _f === void 0 ? void 0 : _f.ListPrice).toFixed(2);
                                                         }
                                                         if (isNaN(sale_price)) {
                                                             sale_price =
-                                                                ((_f = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _f === void 0 ? void 0 : _f.Price).toFixed(2);
+                                                                ((_g = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _g === void 0 ? void 0 : _g.Price).toFixed(2);
                                                         }
                                                     }
                                                     return {
@@ -159,6 +160,7 @@ var XmlTransform = function (_a) {
                                                         unitMultiplier: unitMultiplier,
                                                         price: price,
                                                         sale_price: sale_price,
+                                                        availability: availability,
                                                     };
                                                 }));
                                             }, [])];
@@ -206,10 +208,9 @@ var XmlTransform = function (_a) {
                                 else {
                                     console.log("SKU id ".concat(id, " no found in API"));
                                 }
-                                availability = "in stock";
-                                if (item["g:availability"].__cdata !== "disponível") {
-                                    availability = "out of stock";
-                                }
+                                availability = productDetails_1["".concat(id)].availability
+                                    ? "in stock"
+                                    : "out of stock";
                                 if (complete) {
                                     return [2 /*return*/, __assign(__assign({}, item), { "g:link": {
                                                 __cdata: link,

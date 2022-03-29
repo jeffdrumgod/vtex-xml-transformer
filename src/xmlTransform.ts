@@ -92,6 +92,7 @@ const XmlTransform = async ({
 
                     let price = seller?.commertialOffer?.ListPrice;
                     let sale_price = seller?.commertialOffer?.Price;
+                    let availability = seller?.commertialOffer?.IsAvailable;
 
                     if (seller) {
                       price = (
@@ -118,6 +119,7 @@ const XmlTransform = async ({
                       unitMultiplier,
                       price,
                       sale_price,
+                      availability,
                     };
                   })
                 );
@@ -169,10 +171,9 @@ const XmlTransform = async ({
               console.log(`SKU id ${id} no found in API`);
             }
 
-            let availability = "in stock";
-            if (item["g:availability"].__cdata !== "disponível") {
-              availability = "out of stock";
-            }
+            let availability = productDetails[`${id}`].availability
+              ? "in stock"
+              : "out of stock";
 
             if (complete) {
               return {
