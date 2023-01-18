@@ -25,7 +25,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -134,7 +134,7 @@ var XmlTransform = function (_a) {
                                         }
                                         return [2 /*return*/, (_b = response.data) === null || _b === void 0 ? void 0 : _b.reduce(function (stack, product) {
                                                 return stack.concat(product.items.map(function (sku) {
-                                                    var _a, _b, _c, _d, _e, _f, _g;
+                                                    var _a, _b, _c, _d, _e;
                                                     var unitMultiplier = sku.unitMultiplier, sellers = sku.sellers, itemId = sku.itemId;
                                                     var seller = sellers === null || sellers === void 0 ? void 0 : sellers.find(function (_a) {
                                                         var sellerDefault = _a.sellerDefault;
@@ -144,15 +144,9 @@ var XmlTransform = function (_a) {
                                                     var sale_price = (_b = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _b === void 0 ? void 0 : _b.Price;
                                                     var availability = (_c = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _c === void 0 ? void 0 : _c.IsAvailable;
                                                     if (seller) {
-                                                        price = (((_d = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _d === void 0 ? void 0 : _d.ListPrice) *
-                                                            +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
-                                                        sale_price = (((_e = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _e === void 0 ? void 0 : _e.Price) * +(sku === null || sku === void 0 ? void 0 : sku.unitMultiplier)).toFixed(2);
+                                                        price = ((_d = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _d === void 0 ? void 0 : _d.ListPrice).toFixed(2);
                                                         if (isNaN(price)) {
-                                                            price = ((_f = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _f === void 0 ? void 0 : _f.ListPrice).toFixed(2);
-                                                        }
-                                                        if (isNaN(sale_price)) {
-                                                            sale_price =
-                                                                ((_g = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _g === void 0 ? void 0 : _g.Price).toFixed(2);
+                                                            price = ((_e = seller === null || seller === void 0 ? void 0 : seller.commertialOffer) === null || _e === void 0 ? void 0 : _e.ListPrice).toFixed(2);
                                                         }
                                                     }
                                                     return {
