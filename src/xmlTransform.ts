@@ -95,22 +95,10 @@ const XmlTransform = async ({
                     let availability = seller?.commertialOffer?.IsAvailable;
 
                     if (seller) {
-                      price = (
-                        seller?.commertialOffer?.ListPrice *
-                        +sku?.unitMultiplier
-                      ).toFixed(2);
-
-                      sale_price = (
-                        seller?.commertialOffer?.Price * +sku?.unitMultiplier
-                      ).toFixed(2);
+                      price = (seller?.commertialOffer?.ListPrice).toFixed(2);
 
                       if (isNaN(price)) {
                         price = (seller?.commertialOffer?.ListPrice).toFixed(2);
-                      }
-
-                      if (isNaN(sale_price)) {
-                        sale_price =
-                          (seller?.commertialOffer?.Price).toFixed(2);
                       }
                     }
 
