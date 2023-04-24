@@ -132,6 +132,7 @@ const XmlTransform = async ({
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
             let link = item?.["g:link"]?.__cdata;
+
             let price = item?.["g:price"]?.__cdata;
             let sale_price = item?.["g:sale_price"]?.__cdata;
             const id = item?.["g:id"]?.__cdata;
@@ -159,7 +160,7 @@ const XmlTransform = async ({
               console.log(`SKU id ${id} no found in API`);
             }
 
-            let availability = productDetails[`${id}`].availability
+            let availability = productDetails?.[`${id}`]?.availability
               ? "in stock"
               : "out of stock";
 

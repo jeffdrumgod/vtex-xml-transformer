@@ -174,8 +174,8 @@ var XmlTransform = function (_a) {
                     fs_1.default.writeFileSync("products.json", JSON.stringify(productDetails_1), "utf8");
                     return [4 /*yield*/, Promise.all((_l = (_k = jsonObj === null || jsonObj === void 0 ? void 0 : jsonObj.rss) === null || _k === void 0 ? void 0 : _k.channel) === null || _l === void 0 ? void 0 : _l.item.map(function (item, index) { return __awaiter(void 0, void 0, void 0, function () {
                             var link, price, sale_price, id, a, availability;
-                            var _a, _b, _c, _d;
-                            return __generator(this, function (_e) {
+                            var _a, _b, _c, _d, _e;
+                            return __generator(this, function (_f) {
                                 link = (_a = item === null || item === void 0 ? void 0 : item["g:link"]) === null || _a === void 0 ? void 0 : _a.__cdata;
                                 price = (_b = item === null || item === void 0 ? void 0 : item["g:price"]) === null || _b === void 0 ? void 0 : _b.__cdata;
                                 sale_price = (_c = item === null || item === void 0 ? void 0 : item["g:sale_price"]) === null || _c === void 0 ? void 0 : _c.__cdata;
@@ -202,7 +202,7 @@ var XmlTransform = function (_a) {
                                 else {
                                     console.log("SKU id ".concat(id, " no found in API"));
                                 }
-                                availability = productDetails_1["".concat(id)].availability
+                                availability = ((_e = productDetails_1 === null || productDetails_1 === void 0 ? void 0 : productDetails_1["".concat(id)]) === null || _e === void 0 ? void 0 : _e.availability)
                                     ? "in stock"
                                     : "out of stock";
                                 if (complete) {
