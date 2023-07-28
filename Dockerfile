@@ -1,6 +1,6 @@
 FROM node:18-alpine
 RUN mkdir -p /usr/app/www/tmp; 
-RUN npm install -g pnpm@7.24.2
+RUN npm install -g pnpm@8.6.10
 WORKDIR /usr/app/www
 ADD /build/ /usr/app/www
 COPY ./package.json /usr/app/www/
