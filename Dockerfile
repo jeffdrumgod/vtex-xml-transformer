@@ -7,4 +7,4 @@ COPY ./package.json /usr/app/www/
 COPY ./pnpm-lock.yaml /usr/app/www/
 RUN pnpm install --frozen-lockfile --production
 EXPOSE 8000
-CMD [ "node", "--experimental-specifier-resolution=node", "index.cjs" ]
+CMD [ "node", "--experimental-specifier-resolution=node", "index.js" ]

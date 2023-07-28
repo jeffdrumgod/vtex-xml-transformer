@@ -23,15 +23,15 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // src/index.ts
-var import_http = __toESM(require("http"), 1);
-var import_fs4 = __toESM(require("fs"), 1);
+var import_http = __toESM(require("http"));
+var import_fs4 = __toESM(require("fs"));
 var import_path2 = require("path");
-var import_url3 = __toESM(require("url"), 1);
+var import_url3 = __toESM(require("url"));
 
 // src/download.ts
-var import_https = __toESM(require("https"), 1);
-var import_fs = __toESM(require("fs"), 1);
-var import_path = __toESM(require("path"), 1);
+var import_https = __toESM(require("https"));
+var import_fs = __toESM(require("fs"));
+var import_path = __toESM(require("path"));
 async function Download(url, dest) {
   const tmpFolder = import_path.default.dirname(dest);
   import_fs.default.readdir(tmpFolder, (_, files) => {
@@ -84,7 +84,7 @@ async function Download(url, dest) {
 var download_default = Download;
 
 // src/getVersion.ts
-var import_fs2 = __toESM(require("fs"), 1);
+var import_fs2 = __toESM(require("fs"));
 var getVersion = () => {
   let version3;
   try {
@@ -102,7 +102,7 @@ var getVersion = () => {
 var getVersion_default = getVersion;
 
 // src/requestHandler.ts
-var import_url = __toESM(require("url"), 1);
+var import_url = __toESM(require("url"));
 var version = getVersion_default();
 var RequestHandler = (req, res) => {
   const urlParsed = import_url.default.parse(req?.url ?? "", true);
@@ -131,11 +131,11 @@ var RequestHandler = (req, res) => {
 var requestHandler_default = RequestHandler;
 
 // src/xmlTransform.ts
-var import_fs3 = __toESM(require("fs"), 1);
-var import_fast_xml_parser = __toESM(require("fast-xml-parser"), 1);
-var import_he = __toESM(require("he"), 1);
+var import_fs3 = __toESM(require("fs"));
+var import_fast_xml_parser = __toESM(require("fast-xml-parser"));
+var import_he = __toESM(require("he"));
 var import_axios_cache_interceptor = require("axios-cache-interceptor");
-var import_axios = __toESM(require("axios"), 1);
+var import_axios = __toESM(require("axios"));
 var import_url2 = require("url");
 var version2 = getVersion_default();
 var api = (0, import_axios_cache_interceptor.setupCache)(import_axios.default, {

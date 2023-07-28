@@ -1,9 +1,8 @@
 {
   "name": "vtex-xml-transformer",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "exports": {
     "./*": "./dist/*.js",
     "./*/*": "./dist/*/*.js"
@@ -12,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsup --config tsup.config.ts --watch",
     "build": "tsup --config tsup.config.ts",
-    "start": "npm run build && node --experimental-specifier-resolution=node ./build/index.cjs",
+    "start": "npm run build && node --experimental-specifier-resolution=node ./build/index.js",
     "lint": "eslint . --ext .ts --fix"
   },
   "author": "Jefferson Rafael Kozerski <jeff.drumgod@gmail.com> (https://jeffdrumgod.com.br/)",

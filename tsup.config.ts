@@ -10,4 +10,9 @@ export default defineConfig({
   outDir: 'build',
   minify: false,
   target: 'esnext',
+  outExtension() {
+    return {
+      js: `.js`,
+    };
+  },
 });
