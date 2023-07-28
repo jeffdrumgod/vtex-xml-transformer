@@ -1,34 +1,42 @@
 {
   "name": "vtex-xml-transformer",
-  "version": "1.6.3",
+  "version": "1.7.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
+  "exports": {
+    "./*": "./dist/*.js",
+    "./*/*": "./dist/*/*.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon",
-    "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js",
-    "lint": "eslint . --ext .ts"
+    "dev": "tsup --config tsup.config.ts --watch",
+    "build": "tsup --config tsup.config.ts",
+    "start": "npm run build && node --experimental-specifier-resolution=node ./build/index.cjs",
+    "lint": "eslint . --ext .ts --fix"
   },
   "author": "Jefferson Rafael Kozerski <jeff.drumgod@gmail.com> (https://jeffdrumgod.com.br/)",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.23.0",
-    "axios-cache-adapter": "^2.7.3",
-    "eslint-plugin-import": "^2.25.2",
-    "fast-xml-parser": "^3.20.3",
-    "he": "^1.2.0",
-    "rimraf": "^3.0.2"
+    "axios": "1.4.0",
+    "axios-cache-interceptor": "^1.2.0",
+    "eslint-plugin-import": "2.25.2",
+    "fast-xml-parser": "4.2.6",
+    "he": "1.2.0"
   },
   "devDependencies": {
-    "@types/he": "^1.1.2",
-    "@types/node": "^16.10.4",
-    "@types/rimraf": "^3.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^8.0.0",
-    "nodemon": "^2.0.13",
-    "ts-node": "^10.3.0",
-    "typescript": "^4.4.4"
+    "@types/he": "1.1.2",
+    "@types/node": "20.4.5",
+    "@types/rimraf": "4.0.5",
+    "@typescript-eslint/eslint-plugin": "6.2.0",
+    "@typescript-eslint/parser": "6.2.0",
+    "eslint": "8.0.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-import-resolver-typescript": "^3.5.5",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-react": "^7.33.0",
+    "ts-node": "10.3.0",
+    "tsup": "^7.1.0",
+    "typescript": "5.1.6"
   }
 }
