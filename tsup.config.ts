@@ -12,7 +12,7 @@ export default defineConfig({
   target: 'esnext',
   outExtension() {
     return {
-      js: `.js`,
+      js: '.js',
     };
   },
 });

@@ -150,7 +150,8 @@ var XmlTransform = async ({
   regionId,
   salesChannel,
   complete = false,
-  isMainFeed = false
+  isMainFeed = false,
+  globalCategory
 }) => {
   const xmlData = import_fs3.default.readFileSync(file, "utf8");
   const optionsDecode = {
@@ -262,12 +263,15 @@ var XmlTransform = async ({
                 ...item,
                 "g:link": link,
                 "g:availability": availability,
-                ...isMainFeed ? {} : {
+                ...isMainFeed ? {
+                  "g:price": `${price} BRL`
+                } : {
                   // se não for main feed, apresenta preço e região
                   "g:region_id": regionId,
                   "g:price": `${price} BRL`,
                   "g:sale_price": `${salePrice} BRL`
-                }
+                },
+                ...globalCategory ? { "g:google_product_category": globalCategory } : {}
               };
             }
             return {
@@ -275,7 +279,9 @@ var XmlTransform = async ({
               "g:region_id": regionId,
               "g:price": `${price} BRL`,
               "g:sale_price": `${salePrice} BRL`,
-              "g:availability": availability
+              "g:availability": availability,
+              ...globalCategory ? { "g:google_product_category": globalCategory } : {}
+              // Alimentos, bebidas e tabaco > Alimentos
             };
           })
         );
@@ -360,17 +366,15 @@ server.on("request", async (req, res) => {
       regionId: queryObject?.regionId ?? "",
       salesChannel: queryObject?.salesChannel ?? "",
       complete: !!queryObject?.complete,
-      isMainFeed: !!queryObject?.isMainFeed
+      isMainFeed: !!queryObject?.isMainFeed,
+      globalCategory: queryObject?.globalCategory
     });
     const stat = import_fs4.default.statSync(fileNameTransformed);
     const readStream = import_fs4.default.createReadStream(fileNameTransformed);
-    readStream.on(
-      "open",
-      () => res.writeHead(200, {
-        "Content-Type": "text/xml",
-        "Content-Length": stat.size
-      })
-    );
+    readStream.on("open", () => res.writeHead(200, {
+      "Content-Type": "text/xml",
+      "Content-Length": stat.size
+    }));
     readStream.pipe(res);
   } catch (err) {
     res.statusCode = 500;
