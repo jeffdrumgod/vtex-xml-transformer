@@ -55,16 +55,15 @@ server.on('request', async (req, res) => {
       salesChannel: (queryObject?.salesChannel ?? '') as string,
       complete: !!queryObject?.complete,
       isMainFeed: !!queryObject?.isMainFeed,
+      globalCategory: queryObject?.globalCategory as string,
     });
     const stat = fs.statSync(fileNameTransformed);
 
     const readStream = fs.createReadStream(fileNameTransformed);
-    readStream.on('open', () =>
-      res.writeHead(200, {
-        'Content-Type': 'text/xml',
-        'Content-Length': stat.size,
-      }),
-    );
+    readStream.on('open', () => res.writeHead(200, {
+      'Content-Type': 'text/xml',
+      'Content-Length': stat.size,
+    }));
     readStream.pipe(res);
   } catch (err) {
     res.statusCode = 500;
