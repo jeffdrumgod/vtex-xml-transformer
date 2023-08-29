@@ -89,34 +89,37 @@ const XmlTransform = async ({
               }
 
               return response.data?.reduce(
-                (stack: any[], product: any) => stack.concat(
-                  product.items.map((sku: any) => {
-                    const { unitMultiplier, sellers, itemId } = sku;
-                    const seller = sellers?.find(({ sellerDefault }: any) => !!sellerDefault);
+                (stack: any[], product: any) =>
+                  stack.concat(
+                    product.items.map((sku: any) => {
+                      const { unitMultiplier, sellers, itemId, ean, measurementUnit } = sku;
+                      const seller = sellers?.find(({ sellerDefault }: any) => !!sellerDefault);
 
-                    let price = seller?.commertialOffer?.ListPrice;
-                    const salePrice = seller?.commertialOffer?.Price;
-                    const availability = seller?.commertialOffer?.IsAvailable;
+                      let price = seller?.commertialOffer?.ListPrice;
+                      const salePrice = seller?.commertialOffer?.Price;
+                      const availability = seller?.commertialOffer?.IsAvailable;
 
-                    if (seller) {
-                      // eslint-disable-next-line no-unsafe-optional-chaining
-                      price = +seller?.commertialOffer?.ListPrice?.toFixed(2);
-
-                      if (Number.isNaN(price)) {
+                      if (seller) {
                         // eslint-disable-next-line no-unsafe-optional-chaining
-                        price = (+seller?.commertialOffer?.ListPrice)?.toFixed(2);
-                      }
-                    }
+                        price = +seller?.commertialOffer?.ListPrice?.toFixed(2);
 
-                    return {
-                      itemId,
-                      unitMultiplier,
-                      price,
-                      salePrice,
-                      availability,
-                    };
-                  }),
-                ),
+                        if (Number.isNaN(price)) {
+                          // eslint-disable-next-line no-unsafe-optional-chaining
+                          price = (+seller?.commertialOffer?.ListPrice)?.toFixed(2);
+                        }
+                      }
+
+                      return {
+                        ean,
+                        itemId,
+                        unitMultiplier,
+                        measurementUnit,
+                        price,
+                        salePrice,
+                        availability,
+                      };
+                    }),
+                  ),
                 [],
               );
             }),
@@ -169,6 +172,9 @@ const XmlTransform = async ({
               availability = productDetails?.[`${id}`]?.availability ? 'in stock' : 'out of stock';
             }
 
+            const isProductVariable =
+              (productDetails?.[`${id}`]?.measurementUnit as string)?.toLocaleLowerCase() === 'kg';
+
             if (complete) {
               return {
                 ...item,
@@ -176,15 +182,16 @@ const XmlTransform = async ({
                 'g:availability': availability,
                 ...(isMainFeed
                   ? {
-                    'g:price': `${price} BRL`,
-                  } // se for main feed, não apresenta região
+                      'g:price': `${price} BRL`,
+                    } // se for main feed, não apresenta região
                   : {
-                    // se não for main feed, apresenta preço e região
-                    'g:region_id': regionId,
-                    'g:price': `${price} BRL`,
-                    'g:sale_price': `${salePrice} BRL`,
-                  }),
+                      // se não for main feed, apresenta preço e região
+                      'g:region_id': regionId,
+                      'g:price': `${price} BRL`,
+                      'g:sale_price': `${salePrice} BRL`,
+                    }),
                 ...(globalCategory ? { 'g:google_product_category': globalCategory } : {}),
+                ...(isProductVariable ? { 'g:gtin': '' } : {}),
               };
             }
             return {
@@ -193,9 +200,6 @@ const XmlTransform = async ({
               'g:price': `${price} BRL`,
               'g:sale_price': `${salePrice} BRL`,
               'g:availability': availability,
-              ...(globalCategory ? { 'g:google_product_category': globalCategory } : {}),
-
-              // Alimentos, bebidas e tabaco > Alimentos
             };
           }),
         );
