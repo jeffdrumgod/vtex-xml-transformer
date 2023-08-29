@@ -205,7 +205,7 @@ var XmlTransform = async ({
             return response.data?.reduce(
               (stack, product) => stack.concat(
                 product.items.map((sku) => {
-                  const { unitMultiplier, sellers, itemId } = sku;
+                  const { unitMultiplier, sellers, itemId, ean, measurementUnit } = sku;
                   const seller = sellers?.find(({ sellerDefault }) => !!sellerDefault);
                   let price = seller?.commertialOffer?.ListPrice;
                   const salePrice = seller?.commertialOffer?.Price;
@@ -217,8 +217,10 @@ var XmlTransform = async ({
                     }
                   }
                   return {
+                    ean,
                     itemId,
                     unitMultiplier,
+                    measurementUnit,
                     price,
                     salePrice,
                     availability
@@ -258,6 +260,7 @@ var XmlTransform = async ({
             } else {
               availability = productDetails?.[`${id}`]?.availability ? "in stock" : "out of stock";
             }
+            const isProductVariable = productDetails?.[`${id}`]?.measurementUnit?.toLocaleLowerCase() === "kg";
             if (complete) {
               return {
                 ...item,
@@ -271,7 +274,8 @@ var XmlTransform = async ({
                   "g:price": `${price} BRL`,
                   "g:sale_price": `${salePrice} BRL`
                 },
-                ...globalCategory ? { "g:google_product_category": globalCategory } : {}
+                ...globalCategory ? { "g:google_product_category": globalCategory } : {},
+                ...isProductVariable ? { "g:gtin": "" } : {}
               };
             }
             return {
@@ -279,9 +283,7 @@ var XmlTransform = async ({
               "g:region_id": regionId,
               "g:price": `${price} BRL`,
               "g:sale_price": `${salePrice} BRL`,
-              "g:availability": availability,
-              ...globalCategory ? { "g:google_product_category": globalCategory } : {}
-              // Alimentos, bebidas e tabaco > Alimentos
+              "g:availability": availability
             };
           })
         );
