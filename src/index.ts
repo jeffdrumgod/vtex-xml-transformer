@@ -21,10 +21,9 @@ const getRemoteVtexXml = async ({
 }): Promise<fs.PathLike> => {
   const time = new Date().getTime();
   const file = resolve("./tmp", `${storeName}-${xmlName}-${time}.xml`);
-  const savedFile = await Download(
-    `https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`,
-    file
-  );
+  const url = `https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`;
+  console.log(`Downloading XML from: ${url}`);
+  const savedFile = await Download(url, file);
   return savedFile;
 };
 
@@ -69,7 +68,6 @@ server.on("request", async (req, res) => {
     readStream.pipe(res);
   } catch (err) {
     res.statusCode = 500;
-    res.end("Error");
     console.log(err);
     console.log(
       "ERR:",
@@ -80,6 +78,7 @@ server.on("request", async (req, res) => {
         err,
       })
     );
+    res.end("Error");
   }
   console.log(`Request (${requestCounter}) - END: ${url}`);
 });
