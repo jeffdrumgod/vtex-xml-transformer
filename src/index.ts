@@ -55,6 +55,7 @@ server.on('request', async (req, res) => {
     const fileNameTransformed = await XmlTransform({
       file: fileName,
       storeName: (queryObject?.storeName ?? '') as string,
+      storeDomain: (queryObject?.storeDomain ?? '') as string,
       regionId: (queryObject?.regionId ?? '') as string,
       salesChannel: (queryObject?.salesChannel ?? '') as string,
       complete: !!queryObject?.complete,

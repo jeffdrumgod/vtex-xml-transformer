@@ -16,6 +16,7 @@ const api = setupCache(Axios, {
 
 const XmlTransform = async ({
   storeName,
+  storeDomain,
   file,
   regionId,
   salesChannel,
@@ -24,6 +25,7 @@ const XmlTransform = async ({
   globalCategory,
 }: {
   storeName: string;
+  storeDomain: string;
   file: fs.PathLike;
   regionId: string;
   salesChannel: string;
@@ -151,6 +153,7 @@ const XmlTransform = async ({
               const a = new URL(link);
               // a.searchParams.append("region_id", regionId);
               a.searchParams.append('sc', salesChannel);
+              a.hostname = storeDomain;
               link = a.toString();
             } catch (e: any) {
               // @ts-ignore
