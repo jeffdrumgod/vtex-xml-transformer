@@ -1,5 +1,5 @@
 import fs from 'fs';
-import FastXmlParser, { XmlBuilderOptionsOptional } from 'fast-xml-parser';
+import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import He from 'he';
 import { setupCache, buildMemoryStorage } from 'axios-cache-interceptor';
 import Axios from 'axios';
@@ -61,10 +61,13 @@ const XmlTransform = async ({
   const lastLine = lines[lines.length - 1];
   const commentMatch = lastLine.match(/<!--(.*?)-->/);
   const vtexXmlDetails = commentMatch?.[1] ?? ' -- no details -- ';
+  console.log('Start XML reading and validation');
 
-  if (FastXmlParser.XMLValidator.validate(xmlData) === true) {
+  const validated = XMLValidator.validate(xmlData);
+
+  if (validated === true) {
     try {
-      const xmlParser = new FastXmlParser.XMLParser();
+      const xmlParser = new XMLParser();
       const jsonObj = xmlParser.parse(xmlData, optionsDecode);
 
       let newEntries = jsonObj?.rss?.channel?.item;
@@ -137,7 +140,7 @@ const XmlTransform = async ({
 
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
-            let link = item?.['g:link']?.__cdata ?? item?.['link']?.__cdata;
+            let link = item?.['g:link']?.__cdata || item?.['link']?.__cdata || item?.['link'];
 
             let price = item?.['g:price'];
             let salePrice = item?.['g:sale_price'];
@@ -209,7 +212,7 @@ const XmlTransform = async ({
         console.log('root node <rss> not exist in this XML');
       }
 
-      const optionsEncode: XmlBuilderOptionsOptional = {
+      const optionsEncode = {
         /*
         attributeNamePrefix: '@_',
         // attrNodeName: "@", //default is false
@@ -232,7 +235,7 @@ const XmlTransform = async ({
         // preserveOrder: true,
         arrayNodeName: 'item',
       };
-      const xmlBuilder = new FastXmlParser.XMLBuilder(optionsEncode);
+      const xmlBuilder = new XMLBuilder(optionsEncode);
 
       const xml = xmlBuilder.build(newEntries);
 

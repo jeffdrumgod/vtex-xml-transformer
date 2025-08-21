@@ -1,6 +1,6 @@
-FROM node:18-alpine
+FROM node:22-alpine
 RUN mkdir -p /usr/app/www/tmp; 
-RUN npm install -g pnpm@8.6.10
+RUN npm install -g pnpm@10
 WORKDIR /usr/app/www
 ADD /build/ /usr/app/www
 COPY ./package.json /usr/app/www/

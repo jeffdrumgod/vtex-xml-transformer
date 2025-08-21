@@ -30,15 +30,24 @@ async function Download(url: string, dest: fs.PathLike): Promise<fs.PathLike> {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest, { flags: 'wx' });
 
-    const request = http.get(url, (response) => {
-      if (response.statusCode === 200) {
-        response.pipe(file);
-      } else {
-        file.close();
-        fs.unlink(dest, () => {}); // Delete temp file
-        reject(Error(`Server responded with ${response.statusCode} for ${url}: ${response.statusMessage}`));
-      }
-    });
+    const request = http.get(
+      url,
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        },
+      },
+      (response) => {
+        if (response.statusCode === 200) {
+          response.pipe(file);
+        } else {
+          file.close();
+          fs.unlink(dest, () => {}); // Delete temp file
+          reject(Error(`Server responded with ${response.statusCode} for ${url}: ${response.statusMessage}`));
+        }
+      },
+    );
 
     request.on('error', (err) => {
       file.close();

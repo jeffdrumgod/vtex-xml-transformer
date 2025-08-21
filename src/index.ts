@@ -50,6 +50,8 @@ server.on('request', async (req, res) => {
       },
     );
 
+    console.log(`File downloaded: ${fileName}`);
+
     const fileNameTransformed = await XmlTransform({
       file: fileName,
       storeName: (queryObject?.storeName ?? '') as string,
