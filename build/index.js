@@ -1,128 +1,400 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var http_1 = __importDefault(require("http"));
-var fs_1 = __importDefault(require("fs"));
-var path_1 = require("path");
-var url_1 = __importDefault(require("url"));
-var download_1 = __importDefault(require("./download"));
-var requestHandler_1 = __importDefault(require("./requestHandler"));
-var xmlTransform_1 = __importDefault(require("./xmlTransform"));
-var port = 8000;
-var getRemoteVtexXml = function (_a) {
-    var storeDomain = _a.storeDomain, storeName = _a.storeName, xmlName = _a.xmlName, salesChannel = _a.salesChannel;
-    return __awaiter(void 0, void 0, void 0, function () {
-        var time, file, savedFile;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    time = new Date().getTime();
-                    file = (0, path_1.resolve)("./tmp", "".concat(storeName, "-").concat(xmlName, "-").concat(time, ".xml"));
-                    return [4 /*yield*/, (0, download_1.default)("https://".concat(storeDomain, "/XMLData/").concat(xmlName, ".xml?sc=").concat(salesChannel), file)];
-                case 1:
-                    savedFile = _b.sent();
-                    return [2 /*return*/, savedFile];
-            }
-        });
-    });
-};
-var server = http_1.default.createServer(requestHandler_1.default);
-var requestCounter = 0;
-server.on("request", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var headers, method, url, queryObject, fileName, fileNameTransformed, stat, readStream, err_1;
-    var _a, _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
-            case 0:
-                if (res.writableEnded) {
-                    return [2 /*return*/];
-                }
-                headers = req.headers, method = req.method, url = req.url;
-                queryObject = url_1.default.parse(url !== null && url !== void 0 ? url : "", true).query;
-                requestCounter = requestCounter + 1;
-                console.log("Request (".concat(requestCounter, ") - START: ").concat(url));
-                _d.label = 1;
-            case 1:
-                _d.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, getRemoteVtexXml(queryObject)];
-            case 2:
-                fileName = _d.sent();
-                return [4 /*yield*/, (0, xmlTransform_1.default)({
-                        file: fileName,
-                        storeName: ((_a = queryObject === null || queryObject === void 0 ? void 0 : queryObject.storeName) !== null && _a !== void 0 ? _a : ""),
-                        regionId: ((_b = queryObject === null || queryObject === void 0 ? void 0 : queryObject.regionId) !== null && _b !== void 0 ? _b : ""),
-                        salesChannel: ((_c = queryObject === null || queryObject === void 0 ? void 0 : queryObject.salesChannel) !== null && _c !== void 0 ? _c : ""),
-                        complete: !!(queryObject === null || queryObject === void 0 ? void 0 : queryObject.complete),
-                    })];
-            case 3:
-                fileNameTransformed = _d.sent();
-                stat = fs_1.default.statSync(fileNameTransformed);
-                readStream = fs_1.default.createReadStream(fileNameTransformed);
-                readStream.on("open", function () {
-                    return res.writeHead(200, {
-                        "Content-Type": "text/xml",
-                        "Content-Length": stat.size,
-                    });
-                });
-                readStream.pipe(res);
-                return [3 /*break*/, 5];
-            case 4:
-                err_1 = _d.sent();
-                res.statusCode = 500;
-                res.end("Error");
-                console.log(err_1);
-                console.log("ERR:", JSON.stringify({
-                    headers: headers,
-                    method: method,
-                    url: url,
-                    err: err_1,
-                }));
-                return [3 /*break*/, 5];
-            case 5:
-                console.log("Request (".concat(requestCounter, ") - END: ").concat(url));
-                return [2 /*return*/];
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+
+// src/index.ts
+var import_http = __toESM(require("http"));
+var import_fs4 = __toESM(require("fs"));
+var import_path2 = require("path");
+var import_url3 = __toESM(require("url"));
+
+// src/download.ts
+var import_https = __toESM(require("https"));
+var import_fs = __toESM(require("fs"));
+var import_path = __toESM(require("path"));
+async function Download(url, dest) {
+  const tmpFolder = import_path.default.dirname(dest);
+  import_fs.default.readdir(tmpFolder, (_, files) => {
+    files?.forEach((file) => {
+      import_fs.default.stat(import_path.default.join(tmpFolder, file), (err, stat) => {
+        if (err) {
+          console.error(err);
         }
+        const now = (/* @__PURE__ */ new Date()).getTime();
+        const endTime = new Date(stat.ctime).getTime() + 6e4 * 10;
+        if (now > endTime) {
+          import_fs.default.unlink(import_path.default.join(tmpFolder, file), (errUnlink) => {
+            if (errUnlink) {
+              console.error(errUnlink);
+            }
+          });
+        }
+      });
     });
-}); });
-server.listen(port, function () {
-    console.log("Server up on port ".concat(port));
+  });
+  return new Promise((resolve2, reject) => {
+    const file = import_fs.default.createWriteStream(dest, { flags: "wx" });
+    const request = import_https.default.get(url, (response) => {
+      if (response.statusCode === 200) {
+        response.pipe(file);
+      } else {
+        file.close();
+        import_fs.default.unlink(dest, () => {
+        });
+        reject(Error(`Server responded with ${response.statusCode} for ${url}: ${response.statusMessage}`));
+      }
+    });
+    request.on("error", (err) => {
+      file.close();
+      import_fs.default.unlink(dest, () => {
+      });
+      reject(err.message);
+    });
+    file.on("finish", () => {
+      resolve2(dest);
+    });
+    file.on("error", (err) => {
+      file.close();
+      import_fs.default.unlink(dest, () => {
+      });
+      reject(err.message);
+    });
+  });
+}
+var download_default = Download;
+
+// src/getVersion.ts
+var import_fs2 = __toESM(require("fs"));
+var getVersion = () => {
+  let version3;
+  try {
+    if (import_fs2.default.statSync("./package.json")) {
+      const jsonFile = process.env.NODE_ENV === "production" ? "./package.json" : "../package.json";
+      version3 = JSON.parse(import_fs2.default.readFileSync(jsonFile, "utf8")).version;
+    } else {
+      version3 = "unknown";
+    }
+  } catch (e) {
+    version3 = "unknown";
+  }
+  return version3;
+};
+var getVersion_default = getVersion;
+
+// src/requestHandler.ts
+var import_url = __toESM(require("url"));
+var version = getVersion_default();
+var RequestHandler = (req, res) => {
+  const urlParsed = import_url.default.parse(req?.url ?? "", true);
+  const queryObject = urlParsed.query;
+  if (req.method !== "GET" || !["/xml-parse", "/status"].includes(urlParsed?.pathname || "")) {
+    res.statusCode = 404;
+    res.end("Method or end-point not allowed");
+    return;
+  }
+  if (urlParsed?.pathname === "/status") {
+    res.statusCode = 200;
+    res.end(`ok - ${version}`);
+    return;
+  }
+  if (urlParsed?.pathname === "/xml-parse") {
+    const requiredParams = ["storeDomain", "storeName", "xmlName", "regionId", "salesChannel"];
+    for (const param of requiredParams) {
+      if (!queryObject[param]) {
+        res.statusCode = 400;
+        res.end(`Missing required parameter: ${param}`);
+        return;
+      }
+    }
+  }
+};
+var requestHandler_default = RequestHandler;
+
+// src/xmlTransform.ts
+var import_fs3 = __toESM(require("fs"));
+var import_fast_xml_parser = __toESM(require("fast-xml-parser"));
+var import_he = __toESM(require("he"));
+var import_axios_cache_interceptor = require("axios-cache-interceptor");
+var import_axios = __toESM(require("axios"));
+var import_url2 = require("url");
+var version2 = getVersion_default();
+var api = (0, import_axios_cache_interceptor.setupCache)(import_axios.default, {
+  debug: console.log,
+  storage: (0, import_axios_cache_interceptor.buildMemoryStorage)(),
+  ttl: 1e3 * 60 * 1
+  // 1 minute
 });
-server.timeout = 300000; //  5 minutes
+var XmlTransform = async ({
+  storeName,
+  file,
+  regionId,
+  salesChannel,
+  complete = false,
+  isMainFeed = false,
+  globalCategory
+}) => {
+  const xmlData = import_fs3.default.readFileSync(file, "utf8");
+  const optionsDecode = {
+    attributeNamePrefix: "@_",
+    // attrNodeName: "attr", //default is 'false'
+    textNodeName: "#text",
+    ignoreAttributes: false,
+    ignoreNameSpace: false,
+    allowBooleanAttributes: false,
+    parseNodeValue: true,
+    parseAttributeValue: false,
+    trimValues: true,
+    cdataTagName: "__cdata",
+    // default is 'false'
+    cdataPositionChar: "\\c",
+    parseTrueNumberOnly: false,
+    numParseOptions: {
+      hex: true,
+      leadingZeros: true
+      // skipLike: /\+[0-9]{10}/
+    },
+    arrayMode: false,
+    // "strict"
+    attrValueProcessor: (val, _attrName) => import_he.default.decode(val, { isAttributeValue: true }),
+    // default is a=>a
+    tagValueProcessor: (val, _tagName) => import_he.default.decode(val)
+    // default is a=>a
+    // stopNodes: ["parse-me-as-string"],
+  };
+  const lines = xmlData.split("\n");
+  const lastLine = lines[lines.length - 1];
+  const commentMatch = lastLine.match(/<!--(.*?)-->/);
+  const vtexXmlDetails = commentMatch?.[1] ?? " -- no details -- ";
+  if (import_fast_xml_parser.default.XMLValidator.validate(xmlData) === true) {
+    try {
+      const xmlParser = new import_fast_xml_parser.default.XMLParser();
+      const jsonObj = xmlParser.parse(xmlData, optionsDecode);
+      let newEntries = jsonObj?.rss?.channel?.item;
+      if (jsonObj?.rss?.channel?.item?.length) {
+        const skuList = jsonObj?.rss?.channel?.item.map((item) => item?.["g:id"]);
+        const chunkSize = 50;
+        const chunks = [...Array(Math.ceil(skuList.length / chunkSize))].map((_) => skuList.splice(0, chunkSize));
+        const productDetails = (await Promise.all(
+          chunks.map(async (chunk) => {
+            const urlSearch = `https://${storeName}.myvtex.com/api/catalog_system/pub/products/search/?_from=0&_to=49&${chunk.map((i) => `fq=skuId:${i}`).join("&")}&sc=${salesChannel}`;
+            const response = await api.get(urlSearch);
+            if (!response?.data?.length) {
+              console.log(`API response is empty for ${urlSearch}`);
+              return [];
+            }
+            return response.data?.reduce(
+              (stack, product) => stack.concat(
+                product.items.map((sku) => {
+                  const { unitMultiplier, sellers, itemId, ean, measurementUnit } = sku;
+                  const seller = sellers?.find(({ sellerDefault }) => !!sellerDefault);
+                  let price = seller?.commertialOffer?.ListPrice;
+                  const salePrice = seller?.commertialOffer?.Price;
+                  const availability = seller?.commertialOffer?.IsAvailable;
+                  if (seller) {
+                    price = +seller?.commertialOffer?.ListPrice?.toFixed(2);
+                    if (Number.isNaN(price)) {
+                      price = (+seller?.commertialOffer?.ListPrice)?.toFixed(2);
+                    }
+                  }
+                  return {
+                    ean,
+                    itemId,
+                    unitMultiplier,
+                    measurementUnit,
+                    price,
+                    salePrice,
+                    availability
+                  };
+                })
+              ),
+              []
+            );
+          })
+        )).reduce((stack, group) => stack.concat(group), []).reduce((stack, item) => {
+          Object.assign(stack, { [item.itemId]: item });
+          return stack;
+        }, {});
+        import_fs3.default.writeFileSync("products.json", JSON.stringify(productDetails), "utf8");
+        newEntries = await Promise.all(
+          jsonObj?.rss?.channel?.item.map(async (item, _index) => {
+            let link = item?.["g:link"];
+            let price = item?.["g:price"];
+            let salePrice = item?.["g:sale_price"];
+            const id = item?.["g:id"];
+            try {
+              const a = new import_url2.URL(link);
+              a.searchParams.append("sc", salesChannel);
+              link = a.toString();
+            } catch (e) {
+              console.log(e?.message);
+            }
+            if ({}.hasOwnProperty.call(productDetails, `${id}`)) {
+              salePrice = productDetails[`${id}`].salePrice;
+              price = productDetails[`${id}`].price;
+            } else {
+              console.log(`SKU id ${id} no found in API`);
+            }
+            let availability;
+            if (isMainFeed) {
+              availability = "out of stock";
+            } else {
+              availability = productDetails?.[`${id}`]?.availability ? "in stock" : "out of stock";
+            }
+            const isProductVariable = productDetails?.[`${id}`]?.measurementUnit?.toLocaleLowerCase() === "kg";
+            if (complete) {
+              return {
+                ...item,
+                "g:link": link,
+                "g:availability": availability,
+                ...isMainFeed ? {
+                  "g:price": `${price} BRL`
+                } : {
+                  // se não for main feed, apresenta preço e região
+                  "g:region_id": regionId,
+                  "g:price": `${price} BRL`,
+                  "g:sale_price": `${salePrice} BRL`
+                },
+                ...globalCategory ? { "g:google_product_category": globalCategory } : {},
+                ...isProductVariable ? { "g:gtin": "" } : {}
+              };
+            }
+            return {
+              "g:id": item["g:id"],
+              "g:region_id": regionId,
+              "g:price": `${price} BRL`,
+              "g:sale_price": `${salePrice} BRL`,
+              "g:availability": availability
+            };
+          })
+        );
+      } else {
+        console.log("root node <rss> not exist in this XML");
+      }
+      const optionsEncode = {
+        /*
+        attributeNamePrefix: '@_',
+        // attrNodeName: "@", //default is false
+        // textNodeName: "#text",
+        ignoreAttributes: false,
+        ignoreNameSpace: false,
+        // cdataTagName: '__cdata', // default is false
+        cdataPositionChar: '\\c',
+        format: true,
+        indentBy: '  ',
+        supressEmptyNode: false,
+        tagValueProcessor: (a: string) => He.encode(a, { useNamedReferences: true }), // default is a=>a
+        attrValueProcessor: (a: string) =>
+          He.encode(a, {
+            // @ts-ignore
+            isAttributeValue: true,
+            useNamedReferences: true,
+          }), // default is a=>a
+          */
+        // preserveOrder: true,
+        arrayNodeName: "item"
+      };
+      const xmlBuilder = new import_fast_xml_parser.default.XMLBuilder(optionsEncode);
+      const xml = xmlBuilder.build(newEntries);
+      import_fs3.default.writeFileSync(
+        file,
+        `<?xml version="1.0"?>
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+  <channel>
+${xml}
+</channel>
+</rss><!-- transformedBy="vtex-xml-transformer-${version2}" region_id="${regionId}" | From VTEX: ${vtexXmlDetails} -->`,
+        "utf8"
+      );
+    } catch (err) {
+      console.log(err?.message);
+    }
+  } else {
+    console.log("XMLData is not valid XML");
+  }
+  return file;
+};
+var xmlTransform_default = XmlTransform;
+
+// src/index.ts
+var port = 8e3;
+var getRemoteVtexXml = async ({
+  storeDomain,
+  storeName,
+  xmlName,
+  salesChannel
+}) => {
+  const time = (/* @__PURE__ */ new Date()).getTime();
+  const file = (0, import_path2.resolve)("./tmp", `${storeName}-${xmlName}-${time}.xml`);
+  const savedFile = await download_default(`https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`, file);
+  return savedFile;
+};
+var server = import_http.default.createServer(requestHandler_default);
+var requestCounter = 0;
+server.on("request", async (req, res) => {
+  if (res.writableEnded) {
+    return;
+  }
+  const { headers, method, url } = req;
+  const queryObject = import_url3.default.parse(url ?? "", true).query;
+  requestCounter += 1;
+  console.log(`Request (${requestCounter}) - START: ${url}`);
+  try {
+    const fileName = await getRemoteVtexXml(
+      queryObject
+    );
+    const fileNameTransformed = await xmlTransform_default({
+      file: fileName,
+      storeName: queryObject?.storeName ?? "",
+      regionId: queryObject?.regionId ?? "",
+      salesChannel: queryObject?.salesChannel ?? "",
+      complete: !!queryObject?.complete,
+      isMainFeed: !!queryObject?.isMainFeed,
+      globalCategory: queryObject?.globalCategory
+    });
+    const stat = import_fs4.default.statSync(fileNameTransformed);
+    const readStream = import_fs4.default.createReadStream(fileNameTransformed);
+    readStream.on("open", () => res.writeHead(200, {
+      "Content-Type": "text/xml",
+      "Content-Length": stat.size
+    }));
+    readStream.pipe(res);
+  } catch (err) {
+    res.statusCode = 500;
+    res.end("Error");
+    console.log(err);
+    console.log(
+      "ERR:",
+      JSON.stringify({
+        headers,
+        method,
+        url,
+        err
+      })
+    );
+  }
+  console.log(`Request (${requestCounter}) - END: ${url}`);
+});
+server.listen(port, () => {
+  console.log(`Server up on port ${port}`);
+});
+server.timeout = 3e5;

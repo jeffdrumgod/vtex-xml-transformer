@@ -6,5 +6,36 @@
     ],
     "extends": [
         "airbnb"
-    ]
+    ],
+    "rules": {
+        "no-console": "off",
+        "import/extensions": [
+            "error",
+            "ignorePackages",
+            {
+              "js": "never",
+              "ts": "never"
+            }
+         ],
+         "max-len": ["error",{
+            "code": 120,
+            "ignoreComments": true,
+            "ignoreStrings": true,
+            "ignoreTemplateLiterals": true,
+            "ignoreRegExpLiterals": true
+         }],
+         "no-underscore-dangle": "off",
+         "no-unused-vars": [
+            "error",
+            {  
+              "argsIgnorePattern": "^_"
+            }
+         ],
+    },
+    "settings": {
+        "import/extensions": [".js", ".ts"],
+        "import/resolver": {
+            "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
+        }
+    }
 }
