@@ -26,6 +26,29 @@ async function Download(url: string, dest: fs.PathLike): Promise<fs.PathLike> {
     });
   });
 
+  // deletar arquivos mais velhos do que uma semana, evitar enxer disco
+  const weekInMillis = 60000 * 60 * 24 * 7;
+  fs.readdir(tmpFolder, (_, files) => {
+    files?.forEach((file) => {
+      fs.stat(path.join(tmpFolder, file), (err, stat) => {
+        if (err) {
+          console.error(err);
+        }
+        const now = new Date().getTime();
+        const endTime = new Date(stat.ctime).getTime() + weekInMillis;
+        if (now > endTime) {
+          // @ts-ignore
+          // remove file using fs
+          fs.unlink(path.join(tmpFolder, file), (errUnlink) => {
+            if (errUnlink) {
+              console.error(errUnlink);
+            }
+          });
+        }
+      });
+    });
+  });
+
   // download proccess
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest, { flags: 'wx' });

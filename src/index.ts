@@ -61,6 +61,7 @@ server.on('request', async (req, res) => {
       complete: !!queryObject?.complete,
       isMainFeed: !!queryObject?.isMainFeed,
       globalCategory: queryObject?.globalCategory as string,
+      customProductUrlType: queryObject?.customProductUrlType as any,
     });
     const stat = fs.statSync(fileNameTransformed);
 

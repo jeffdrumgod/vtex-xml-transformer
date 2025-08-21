@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { unlink } from 'fs';
 import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import He from 'he';
 import { setupCache, buildMemoryStorage } from 'axios-cache-interceptor';
@@ -14,6 +14,23 @@ const api = setupCache(Axios, {
   ttl: 1000 * 60 * 1, // 1 minute
 });
 
+type CustomProductUrlType = undefined | 'prefix-detail';
+
+const formatProductPathUrl = (urlObject: URL, customTypeFormat: CustomProductUrlType) => {
+  // get slug os product from default VTEX URL (/p)
+  const slug =
+    urlObject.pathname
+      .split('/')
+      .filter((i) => !!i)
+      .at(0) ?? '';
+  switch (customTypeFormat) {
+    case 'prefix-detail':
+      return `/detail/${slug}`;
+    default:
+      return urlObject.pathname;
+  }
+};
+
 const XmlTransform = async ({
   storeName,
   storeDomain,
@@ -23,6 +40,7 @@ const XmlTransform = async ({
   complete = false,
   isMainFeed = false,
   globalCategory,
+  customProductUrlType,
 }: {
   storeName: string;
   storeDomain: string;
@@ -32,6 +50,7 @@ const XmlTransform = async ({
   complete: boolean;
   isMainFeed: boolean;
   globalCategory: string;
+  customProductUrlType: CustomProductUrlType;
 }): Promise<fs.PathLike> => {
   const xmlData = fs.readFileSync(file, 'utf8');
 
@@ -143,6 +162,21 @@ const XmlTransform = async ({
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
             let link = item?.['g:link']?.__cdata || item?.['link']?.__cdata || item?.['link'];
+            let title = item?.['g:title']?.__cdata || item?.['title']?.__cdata || item?.['title'];
+            let description =
+              item?.['g:description']?.__cdata || item?.['description']?.__cdata || item?.['description'];
+
+            if (item?.['link']) {
+              delete item?.['link'];
+            }
+
+            if (item?.['title']) {
+              delete item?.['title'];
+            }
+
+            if (item?.['description']) {
+              delete item?.['description'];
+            }
 
             let price = item?.['g:price'];
             let salePrice = item?.['g:sale_price'];
@@ -154,6 +188,8 @@ const XmlTransform = async ({
               // a.searchParams.append("region_id", regionId);
               a.searchParams.append('sc', salesChannel);
               a.hostname = storeDomain;
+              a.pathname = formatProductPathUrl(a, customProductUrlType);
+
               link = a.toString();
             } catch (e: any) {
               // @ts-ignore
@@ -186,7 +222,15 @@ const XmlTransform = async ({
             if (complete) {
               return {
                 ...item,
-                'g:link': link,
+                'g:title': {
+                  __cdata: title,
+                },
+                'g:description': {
+                  __cdata: description,
+                },
+                'g:link': {
+                  __cdata: link,
+                },
                 'g:availability': availability,
                 ...(isMainFeed
                   ? {
@@ -222,20 +266,20 @@ const XmlTransform = async ({
         // textNodeName: "#text",
         ignoreAttributes: false,
         ignoreNameSpace: false,
-        // cdataTagName: '__cdata', // default is false
         cdataPositionChar: '\\c',
         format: true,
         indentBy: '  ',
         supressEmptyNode: false,
         tagValueProcessor: (a: string) => He.encode(a, { useNamedReferences: true }), // default is a=>a
         attrValueProcessor: (a: string) =>
-          He.encode(a, {
-            // @ts-ignore
-            isAttributeValue: true,
-            useNamedReferences: true,
-          }), // default is a=>a
-          */
+        He.encode(a, {
+        // @ts-ignore
+        isAttributeValue: true,
+        useNamedReferences: true,
+        }), // default is a=>a
+        */
         // preserveOrder: true,
+        cdataPropName: '__cdata',
         arrayNodeName: 'item',
       };
       const xmlBuilder = new XMLBuilder(optionsEncode);
