@@ -236,8 +236,8 @@ var XmlTransform = async ({
         }, {});
         import_fs3.default.writeFileSync("products.json", JSON.stringify(productDetails), "utf8");
         newEntries = await Promise.all(
-          jsonObj?.rss?.channel?.item.map(async (item, _index) => {
-            let link = item?.["g:link"];
+          jsonObj?.rss?.channel?.item.map(async (item, index) => {
+            let link = item?.["g:link"]?.__cdata ?? item?.["link"]?.__cdata;
             let price = item?.["g:price"];
             let salePrice = item?.["g:sale_price"];
             const id = item?.["g:id"];
@@ -246,7 +246,7 @@ var XmlTransform = async ({
               a.searchParams.append("sc", salesChannel);
               link = a.toString();
             } catch (e) {
-              console.log(e?.message);
+              console.log("Error parsing URL:", link, e?.message);
             }
             if ({}.hasOwnProperty.call(productDetails, `${id}`)) {
               salePrice = productDetails[`${id}`].salePrice;
@@ -326,7 +326,7 @@ ${xml}
         "utf8"
       );
     } catch (err) {
-      console.log(err?.message);
+      console.log("CATCH ERROR XmlTransform", err);
     }
   } else {
     console.log("XMLData is not valid XML");
@@ -345,7 +345,9 @@ var getRemoteVtexXml = async ({
 }) => {
   const time = (/* @__PURE__ */ new Date()).getTime();
   const file = (0, import_path2.resolve)("./tmp", `${storeName}-${xmlName}-${time}.xml`);
-  const savedFile = await download_default(`https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`, file);
+  const url = `https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`;
+  console.log(`Downloading XML from: ${url}`);
+  const savedFile = await download_default(url, file);
   return savedFile;
 };
 var server = import_http.default.createServer(requestHandler_default);
@@ -373,14 +375,16 @@ server.on("request", async (req, res) => {
     });
     const stat = import_fs4.default.statSync(fileNameTransformed);
     const readStream = import_fs4.default.createReadStream(fileNameTransformed);
-    readStream.on("open", () => res.writeHead(200, {
-      "Content-Type": "text/xml",
-      "Content-Length": stat.size
-    }));
+    readStream.on(
+      "open",
+      () => res.writeHead(200, {
+        "Content-Type": "text/xml",
+        "Content-Length": stat.size
+      })
+    );
     readStream.pipe(res);
   } catch (err) {
     res.statusCode = 500;
-    res.end("Error");
     console.log(err);
     console.log(
       "ERR:",
@@ -391,6 +395,7 @@ server.on("request", async (req, res) => {
         err
       })
     );
+    res.end("Error");
   }
   console.log(`Request (${requestCounter}) - END: ${url}`);
 });
