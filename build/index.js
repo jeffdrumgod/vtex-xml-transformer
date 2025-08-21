@@ -52,18 +52,45 @@ async function Download(url, dest) {
       });
     });
   });
+  const weekInMillis = 6e4 * 60 * 24 * 7;
+  import_fs.default.readdir(tmpFolder, (_, files) => {
+    files?.forEach((file) => {
+      import_fs.default.stat(import_path.default.join(tmpFolder, file), (err, stat) => {
+        if (err) {
+          console.error(err);
+        }
+        const now = (/* @__PURE__ */ new Date()).getTime();
+        const endTime = new Date(stat.ctime).getTime() + weekInMillis;
+        if (now > endTime) {
+          import_fs.default.unlink(import_path.default.join(tmpFolder, file), (errUnlink) => {
+            if (errUnlink) {
+              console.error(errUnlink);
+            }
+          });
+        }
+      });
+    });
+  });
   return new Promise((resolve2, reject) => {
     const file = import_fs.default.createWriteStream(dest, { flags: "wx" });
-    const request = import_https.default.get(url, (response) => {
-      if (response.statusCode === 200) {
-        response.pipe(file);
-      } else {
-        file.close();
-        import_fs.default.unlink(dest, () => {
-        });
-        reject(Error(`Server responded with ${response.statusCode} for ${url}: ${response.statusMessage}`));
+    const request = import_https.default.get(
+      url,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        }
+      },
+      (response) => {
+        if (response.statusCode === 200) {
+          response.pipe(file);
+        } else {
+          file.close();
+          import_fs.default.unlink(dest, () => {
+          });
+          reject(Error(`Server responded with ${response.statusCode} for ${url}: ${response.statusMessage}`));
+        }
       }
-    });
+    );
     request.on("error", (err) => {
       file.close();
       import_fs.default.unlink(dest, () => {
@@ -132,7 +159,7 @@ var requestHandler_default = RequestHandler;
 
 // src/xmlTransform.ts
 var import_fs3 = __toESM(require("fs"));
-var import_fast_xml_parser = __toESM(require("fast-xml-parser"));
+var import_fast_xml_parser = require("fast-xml-parser");
 var import_he = __toESM(require("he"));
 var import_axios_cache_interceptor = require("axios-cache-interceptor");
 var import_axios = __toESM(require("axios"));
@@ -144,14 +171,25 @@ var api = (0, import_axios_cache_interceptor.setupCache)(import_axios.default, {
   ttl: 1e3 * 60 * 1
   // 1 minute
 });
+var formatProductPathUrl = (urlObject, customTypeFormat) => {
+  const slug = urlObject.pathname.split("/").filter((i) => !!i).at(0) ?? "";
+  switch (customTypeFormat) {
+    case "prefix-detail":
+      return `/detail/${slug}`;
+    default:
+      return urlObject.pathname;
+  }
+};
 var XmlTransform = async ({
   storeName,
+  storeDomain,
   file,
   regionId,
   salesChannel,
   complete = false,
   isMainFeed = false,
-  globalCategory
+  globalCategory,
+  customProductUrlType
 }) => {
   const xmlData = import_fs3.default.readFileSync(file, "utf8");
   const optionsDecode = {
@@ -185,9 +223,11 @@ var XmlTransform = async ({
   const lastLine = lines[lines.length - 1];
   const commentMatch = lastLine.match(/<!--(.*?)-->/);
   const vtexXmlDetails = commentMatch?.[1] ?? " -- no details -- ";
-  if (import_fast_xml_parser.default.XMLValidator.validate(xmlData) === true) {
+  console.log("Start XML reading and validation");
+  const validated = import_fast_xml_parser.XMLValidator.validate(xmlData);
+  if (validated === true) {
     try {
-      const xmlParser = new import_fast_xml_parser.default.XMLParser();
+      const xmlParser = new import_fast_xml_parser.XMLParser();
       const jsonObj = xmlParser.parse(xmlData, optionsDecode);
       let newEntries = jsonObj?.rss?.channel?.item;
       if (jsonObj?.rss?.channel?.item?.length) {
@@ -237,13 +277,26 @@ var XmlTransform = async ({
         import_fs3.default.writeFileSync("products.json", JSON.stringify(productDetails), "utf8");
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item, index) => {
-            let link = item?.["g:link"]?.__cdata ?? item?.["link"]?.__cdata;
+            let link = item?.["g:link"]?.__cdata || item?.["link"]?.__cdata || item?.["link"];
+            let title = item?.["g:title"]?.__cdata || item?.["title"]?.__cdata || item?.["title"];
+            let description = item?.["g:description"]?.__cdata || item?.["description"]?.__cdata || item?.["description"];
+            if (item?.["link"]) {
+              delete item?.["link"];
+            }
+            if (item?.["title"]) {
+              delete item?.["title"];
+            }
+            if (item?.["description"]) {
+              delete item?.["description"];
+            }
             let price = item?.["g:price"];
             let salePrice = item?.["g:sale_price"];
             const id = item?.["g:id"];
             try {
               const a = new import_url2.URL(link);
               a.searchParams.append("sc", salesChannel);
+              a.hostname = storeDomain;
+              a.pathname = formatProductPathUrl(a, customProductUrlType);
               link = a.toString();
             } catch (e) {
               console.log("Error parsing URL:", link, e?.message);
@@ -264,7 +317,15 @@ var XmlTransform = async ({
             if (complete) {
               return {
                 ...item,
-                "g:link": link,
+                "g:title": {
+                  __cdata: title
+                },
+                "g:description": {
+                  __cdata: description
+                },
+                "g:link": {
+                  __cdata: link
+                },
                 "g:availability": availability,
                 ...isMainFeed ? {
                   "g:price": `${price} BRL`
@@ -297,23 +358,23 @@ var XmlTransform = async ({
         // textNodeName: "#text",
         ignoreAttributes: false,
         ignoreNameSpace: false,
-        // cdataTagName: '__cdata', // default is false
         cdataPositionChar: '\\c',
         format: true,
         indentBy: '  ',
         supressEmptyNode: false,
         tagValueProcessor: (a: string) => He.encode(a, { useNamedReferences: true }), // default is a=>a
         attrValueProcessor: (a: string) =>
-          He.encode(a, {
-            // @ts-ignore
-            isAttributeValue: true,
-            useNamedReferences: true,
-          }), // default is a=>a
-          */
+        He.encode(a, {
+        // @ts-ignore
+        isAttributeValue: true,
+        useNamedReferences: true,
+        }), // default is a=>a
+        */
         // preserveOrder: true,
+        cdataPropName: "__cdata",
         arrayNodeName: "item"
       };
-      const xmlBuilder = new import_fast_xml_parser.default.XMLBuilder(optionsEncode);
+      const xmlBuilder = new import_fast_xml_parser.XMLBuilder(optionsEncode);
       const xml = xmlBuilder.build(newEntries);
       import_fs3.default.writeFileSync(
         file,
@@ -364,14 +425,17 @@ server.on("request", async (req, res) => {
     const fileName = await getRemoteVtexXml(
       queryObject
     );
+    console.log(`File downloaded: ${fileName}`);
     const fileNameTransformed = await xmlTransform_default({
       file: fileName,
       storeName: queryObject?.storeName ?? "",
+      storeDomain: queryObject?.storeDomain ?? "",
       regionId: queryObject?.regionId ?? "",
       salesChannel: queryObject?.salesChannel ?? "",
       complete: !!queryObject?.complete,
       isMainFeed: !!queryObject?.isMainFeed,
-      globalCategory: queryObject?.globalCategory
+      globalCategory: queryObject?.globalCategory,
+      customProductUrlType: queryObject?.customProductUrlType
     });
     const stat = import_fs4.default.statSync(fileNameTransformed);
     const readStream = import_fs4.default.createReadStream(fileNameTransformed);
@@ -403,3 +467,4 @@ server.listen(port, () => {
   console.log(`Server up on port ${port}`);
 });
 server.timeout = 3e5;
+//# sourceMappingURL=index.js.map
