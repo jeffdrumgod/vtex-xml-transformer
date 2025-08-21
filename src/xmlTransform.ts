@@ -75,6 +75,8 @@ const XmlTransform = async ({
                 .map((i) => `fq=skuId:${i}`)
                 .join("&")}&sc=${salesChannel}`;
 
+              //console.log(`Fetching product details from: ${urlSearch}`);
+
               const response = (await api.get(urlSearch)) as any;
 
               if (!response?.data?.length) {
@@ -131,7 +133,7 @@ const XmlTransform = async ({
 
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
-            let link = item?.["g:link"]?.__cdata;
+            let link = item?.["g:link"]?.__cdata ?? item?.["link"]?.__cdata;
 
             let price = item?.["g:price"]?.__cdata;
             let sale_price = item?.["g:sale_price"]?.__cdata;
@@ -145,7 +147,7 @@ const XmlTransform = async ({
               link = a.toString();
             } catch (e: any) {
               // @ts-ignore
-              console.log(e?.message);
+              console.log("Error parsing URL:", link, e?.message);
             }
 
             // OMG, this is a hack, but it works
@@ -248,7 +250,7 @@ const XmlTransform = async ({
       fs.writeFileSync(file, `<?xml version="1.0"?>${xml}`, "utf8");
     } catch (err: any) {
       // @ts-ignore
-      console.log(err?.message);
+      console.log("CATCH ERROR XmlTransform", err);
     }
   } else {
     console.log("XMLData is not valid XML");
