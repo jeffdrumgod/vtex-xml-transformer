@@ -161,10 +161,19 @@ const XmlTransform = async ({
 
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
-            let link = item?.['g:link']?.__cdata || item?.['link']?.__cdata || item?.['link'];
-            let title = item?.['g:title']?.__cdata || item?.['title']?.__cdata || item?.['title'];
+            let link = item?.['g:link']?.__cdata || item?.['g:link'] || item?.['link']?.__cdata || item?.['link'];
+            let title = item?.['g:title']?.__cdata || item?.['g:title'] || item?.['title']?.__cdata || item?.['title'];
+            let product_category =
+              item?.['g:google_product_category']?.__cdata ||
+              item?.['g:google_product_category'] ||
+              item?.['google_product_category']?.__cdata ||
+              item?.['google_product_category'];
+
             let description =
-              item?.['g:description']?.__cdata || item?.['description']?.__cdata || item?.['description'];
+              item?.['g:description']?.__cdata ||
+              item?.['g:description'] ||
+              item?.['description']?.__cdata ||
+              item?.['description'];
 
             if (item?.['link']) {
               delete item?.['link'];
@@ -176,6 +185,10 @@ const XmlTransform = async ({
 
             if (item?.['description']) {
               delete item?.['description'];
+            }
+
+            if (item?.['product_category']) {
+              delete item?.['product_category'];
             }
 
             let price = item?.['g:price'];
@@ -224,6 +237,9 @@ const XmlTransform = async ({
                 ...item,
                 'g:title': {
                   __cdata: title,
+                },
+                'g:product_category': {
+                  __cdata: product_category,
                 },
                 'g:description': {
                   __cdata: description,

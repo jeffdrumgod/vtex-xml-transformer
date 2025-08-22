@@ -277,9 +277,10 @@ var XmlTransform = async ({
         import_fs3.default.writeFileSync("products.json", JSON.stringify(productDetails), "utf8");
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item, index) => {
-            let link = item?.["g:link"]?.__cdata || item?.["link"]?.__cdata || item?.["link"];
-            let title = item?.["g:title"]?.__cdata || item?.["title"]?.__cdata || item?.["title"];
-            let description = item?.["g:description"]?.__cdata || item?.["description"]?.__cdata || item?.["description"];
+            let link = item?.["g:link"]?.__cdata || item?.["g:link"] || item?.["link"]?.__cdata || item?.["link"];
+            let title = item?.["g:title"]?.__cdata || item?.["g:title"] || item?.["title"]?.__cdata || item?.["title"];
+            let product_category = item?.["g:google_product_category"]?.__cdata || item?.["g:google_product_category"] || item?.["google_product_category"]?.__cdata || item?.["google_product_category"];
+            let description = item?.["g:description"]?.__cdata || item?.["g:description"] || item?.["description"]?.__cdata || item?.["description"];
             if (item?.["link"]) {
               delete item?.["link"];
             }
@@ -288,6 +289,9 @@ var XmlTransform = async ({
             }
             if (item?.["description"]) {
               delete item?.["description"];
+            }
+            if (item?.["product_category"]) {
+              delete item?.["product_category"];
             }
             let price = item?.["g:price"];
             let salePrice = item?.["g:sale_price"];
@@ -319,6 +323,9 @@ var XmlTransform = async ({
                 ...item,
                 "g:title": {
                   __cdata: title
+                },
+                "g:product_category": {
+                  __cdata: product_category
                 },
                 "g:description": {
                   __cdata: description
