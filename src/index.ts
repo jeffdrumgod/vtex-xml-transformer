@@ -3,8 +3,9 @@ import fs from 'fs';
 import { resolve } from 'path';
 import Url from 'url';
 import Download from './download';
-import RequestHandler from './requestHandler';
+import RequestHandler, { ROUTES } from './requestHandler';
 import XmlTransform from './xmlTransform';
+import MetaTransform from './metaTransform';
 
 const port = 8000;
 
@@ -36,7 +37,9 @@ server.on('request', async (req, res) => {
   }
 
   const { headers, method, url } = req;
-  const queryObject = Url.parse(url ?? '', true).query;
+  const urlParsed = Url.parse(url ?? '', true);
+  const queryObject = urlParsed.query;
+  const pathname = urlParsed.pathname || '';
 
   requestCounter += 1;
   console.log(`Request (${requestCounter}) - START: ${url}`);
@@ -52,17 +55,35 @@ server.on('request', async (req, res) => {
 
     console.log(`File downloaded: ${fileName}`);
 
-    const fileNameTransformed = await XmlTransform({
-      file: fileName,
-      storeName: (queryObject?.storeName ?? '') as string,
-      storeDomain: (queryObject?.storeDomain ?? '') as string,
-      regionId: (queryObject?.regionId ?? '') as string,
-      salesChannel: (queryObject?.salesChannel ?? '') as string,
-      complete: !!queryObject?.complete,
-      isMainFeed: !!queryObject?.isMainFeed,
-      globalCategory: queryObject?.globalCategory as string,
-      customProductUrlType: queryObject?.customProductUrlType as any,
-    });
+    const fileNameTransformed =
+      pathname === ROUTES.meta
+        ? await MetaTransform({
+            file: fileName,
+            storeName: (queryObject?.storeName ?? '') as string,
+            storeDomain: (queryObject?.storeDomain ?? '') as string,
+            regionId: (queryObject?.regionId ?? '') as string,
+            salesChannel: (queryObject?.salesChannel ?? '') as string,
+            idType: (queryObject?.idType === 'product' ? 'product' : 'sku') as 'sku' | 'product',
+            utm: {
+              keepUtm: !['0', 'false'].includes(`${queryObject?.utm ?? '1'}`),
+              utmSource: queryObject?.utmSource as string | undefined,
+              utmMedium: queryObject?.utmMedium as string | undefined,
+              utmCampaign: queryObject?.utmCampaign as string | undefined,
+            },
+            globalCategory: queryObject?.globalCategory as string | undefined,
+            customProductUrlType: queryObject?.customProductUrlType as any,
+          })
+        : await XmlTransform({
+            file: fileName,
+            storeName: (queryObject?.storeName ?? '') as string,
+            storeDomain: (queryObject?.storeDomain ?? '') as string,
+            regionId: (queryObject?.regionId ?? '') as string,
+            salesChannel: (queryObject?.salesChannel ?? '') as string,
+            complete: !!queryObject?.complete,
+            isMainFeed: !!queryObject?.isMainFeed,
+            globalCategory: queryObject?.globalCategory as string,
+            customProductUrlType: queryObject?.customProductUrlType as any,
+          });
     const stat = fs.statSync(fileNameTransformed);
 
     const readStream = fs.createReadStream(fileNameTransformed);
