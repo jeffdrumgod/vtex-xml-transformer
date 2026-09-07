@@ -4,3 +4,4 @@ tmp/*
 NOTES.md
 example
 products.json
+build/*.map
