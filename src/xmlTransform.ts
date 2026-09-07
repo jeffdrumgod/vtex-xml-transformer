@@ -1,35 +1,11 @@
-import fs, { unlink } from 'fs';
+import fs from 'fs';
 import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import He from 'he';
-import { setupCache, buildMemoryStorage } from 'axios-cache-interceptor';
-import Axios from 'axios';
-import { URL } from 'url';
 import getVersion from 'getVersion';
+import fetchProductDetails from 'productDetails';
+import buildProductLink, { CustomProductUrlType } from 'linkBuilder';
 
 const version = getVersion();
-
-const api = setupCache(Axios, {
-  debug: console.log,
-  storage: buildMemoryStorage(),
-  ttl: 1000 * 60 * 1, // 1 minute
-});
-
-type CustomProductUrlType = undefined | 'prefix-detail';
-
-const formatProductPathUrl = (urlObject: URL, customTypeFormat: CustomProductUrlType) => {
-  // get slug os product from default VTEX URL (/p)
-  const slug =
-    urlObject.pathname
-      .split('/')
-      .filter((i) => !!i)
-      .at(0) ?? '';
-  switch (customTypeFormat) {
-    case 'prefix-detail':
-      return `/detail/${slug}`;
-    default:
-      return urlObject.pathname;
-  }
-};
 
 const XmlTransform = async ({
   storeName,
@@ -95,69 +71,7 @@ const XmlTransform = async ({
       if (jsonObj?.rss?.channel?.item?.length) {
         const skuList = jsonObj?.rss?.channel?.item.map((item: any) => item?.['g:id']);
 
-        const chunkSize = 50;
-        const chunks = [...Array(Math.ceil(skuList.length / chunkSize))].map((_) => skuList.splice(0, chunkSize));
-
-        const productDetails = (
-          await Promise.all(
-            chunks.map(async (chunk: string[]) => {
-              const urlSearch = `https://${storeName}.myvtex.com/api/catalog_system/pub/products/search/?_from=0&_to=49&${chunk
-                .map((i) => `fq=skuId:${i}`)
-                .join('&')}&sc=${salesChannel}`;
-
-              //console.log(`Fetching product details from: ${urlSearch}`);
-
-              const response = (await api.get(urlSearch)) as any;
-
-              if (!response?.data?.length) {
-                console.log(`API response is empty for ${urlSearch}`);
-                return [];
-              }
-
-              return response.data?.reduce(
-                (stack: any[], product: any) =>
-                  stack.concat(
-                    product.items.map((sku: any) => {
-                      const { unitMultiplier, sellers, itemId, ean, measurementUnit } = sku;
-                      const seller = sellers?.find(({ sellerDefault }: any) => !!sellerDefault);
-
-                      let price = seller?.commertialOffer?.ListPrice;
-                      const salePrice = seller?.commertialOffer?.Price;
-                      const availability = seller?.commertialOffer?.IsAvailable;
-
-                      if (seller) {
-                        // eslint-disable-next-line no-unsafe-optional-chaining
-                        price = +seller?.commertialOffer?.ListPrice?.toFixed(2);
-
-                        if (Number.isNaN(price)) {
-                          // eslint-disable-next-line no-unsafe-optional-chaining
-                          price = (+seller?.commertialOffer?.ListPrice)?.toFixed(2);
-                        }
-                      }
-
-                      return {
-                        ean,
-                        itemId,
-                        unitMultiplier,
-                        measurementUnit,
-                        price,
-                        salePrice,
-                        availability,
-                      };
-                    }),
-                  ),
-                [],
-              );
-            }),
-          )
-        )
-          .reduce((stack, group) => stack.concat(group), [])
-          .reduce((stack: any, item: any) => {
-            Object.assign(stack, { [item.itemId]: item });
-            return stack;
-          }, {});
-
-        fs.writeFileSync('products.json', JSON.stringify(productDetails), 'utf8');
+        const productDetails = await fetchProductDetails({ storeName, salesChannel, skuIds: skuList });
 
         newEntries = await Promise.all(
           jsonObj?.rss?.channel?.item.map(async (item: any, index: number) => {
@@ -195,19 +109,7 @@ const XmlTransform = async ({
             let salePrice = item?.['g:sale_price'];
             const id = item?.['g:id'];
 
-            // add new params
-            try {
-              const a = new URL(link);
-              // a.searchParams.append("region_id", regionId);
-              a.searchParams.append('sc', salesChannel);
-              a.hostname = storeDomain;
-              a.pathname = formatProductPathUrl(a, customProductUrlType);
-
-              link = a.toString();
-            } catch (e: any) {
-              // @ts-ignore
-              console.log('Error parsing URL:', link, e?.message);
-            }
+            link = buildProductLink({ link, storeDomain, salesChannel, customProductUrlType });
 
             // OMG, this is a hack, but it works
             // - get details from API
