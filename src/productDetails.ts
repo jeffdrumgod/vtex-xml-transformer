@@ -123,8 +123,6 @@ const fetchProductDetails = async ({
       return stack;
     }, {});
 
-  fs.writeFileSync('products.json', JSON.stringify(details), 'utf8');
-
   return details;
 };
 

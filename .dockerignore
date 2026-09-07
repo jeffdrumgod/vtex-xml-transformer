@@ -1,0 +1,8 @@
+node_modules
+build
+tmp
+example
+*.xml
+products.json
+NOTES.md
+.git
