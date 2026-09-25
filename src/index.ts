@@ -6,6 +6,7 @@ import Download from './download';
 import RequestHandler, { ROUTES } from './requestHandler';
 import XmlTransform from './xmlTransform';
 import MetaTransform from './metaTransform';
+import { parseImageSelector } from './imageSelector';
 
 const port = 8000;
 
@@ -72,6 +73,7 @@ server.on('request', async (req, res) => {
             },
             globalCategory: queryObject?.globalCategory as string | undefined,
             customProductUrlType: queryObject?.customProductUrlType as any,
+            imageSelector: parseImageSelector(queryObject),
           })
         : await XmlTransform({
             file: fileName,
@@ -83,6 +85,7 @@ server.on('request', async (req, res) => {
             isMainFeed: !!queryObject?.isMainFeed,
             globalCategory: queryObject?.globalCategory as string,
             customProductUrlType: queryObject?.customProductUrlType as any,
+            imageSelector: parseImageSelector(queryObject),
           });
     const stat = fs.statSync(fileNameTransformed);
 

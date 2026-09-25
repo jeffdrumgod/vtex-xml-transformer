@@ -4,6 +4,7 @@ import He from 'he';
 import getVersion from 'getVersion';
 import fetchProductDetails from 'productDetails';
 import buildProductLink, { CustomProductUrlType } from 'linkBuilder';
+import { ImageSelector, selectImage } from 'imageSelector';
 
 const version = getVersion();
 
@@ -17,6 +18,7 @@ const XmlTransform = async ({
   isMainFeed = false,
   globalCategory,
   customProductUrlType,
+  imageSelector,
 }: {
   storeName: string;
   storeDomain: string;
@@ -27,6 +29,7 @@ const XmlTransform = async ({
   isMainFeed: boolean;
   globalCategory: string;
   customProductUrlType: CustomProductUrlType;
+  imageSelector?: ImageSelector;
 }): Promise<fs.PathLike> => {
   const xmlData = fs.readFileSync(file, 'utf8');
 
@@ -135,8 +138,12 @@ const XmlTransform = async ({
               (productDetails?.[`${id}`]?.measurementUnit as string)?.toLocaleLowerCase() === 'kg';
 
             if (complete) {
+              // imagem por parâmetro (imageIndex/imageMatch); sem match mantém g:image_link do XML VTEX
+              const selectedImage = selectImage(productDetails?.[`${id}`]?.images ?? [], imageSelector);
+
               return {
                 ...item,
+                ...(selectedImage?.imageUrl ? { 'g:image_link': { __cdata: selectedImage.imageUrl } } : {}),
                 'g:title': {
                   __cdata: title,
                 },

@@ -23,6 +23,7 @@ GET /xml-parse?storeDomain=www.mystore.com&storeName=mystore&xmlName=google_shop
 | `salesChannel` | yes | VTEX sales channel (`sc`) used for price and stock |
 | `customProductUrlType` | no | Product URL format, e.g. `prefix-detail` |
 | `globalCategory` | no | Fallback for `g:google_product_category` |
+| `imageIndex`, `imageMatch` | no | Choose `g:image_link` (only with `complete`). See [Image selection](#image-selection). Without a match, the XML image is kept |
 
 ### Meta (Facebook / Instagram)
 
@@ -41,6 +42,22 @@ GET /xml-parse-meta?storeDomain=www.mystore.com&storeName=mystore&xmlName=facebo
 | `utmSource`, `utmMedium`, `utmCampaign` | no | Override UTM values (ignored when `utm=0`) |
 | `regionId` | no | Label only, written to the trailing XML comment |
 | `customProductUrlType`, `globalCategory` | no | Same as Google |
+| `imageIndex`, `imageMatch` | no | Choose `g:image_link`. See [Image selection](#image-selection). Without a match, falls back to the `_mck` image, then the first image |
+
+### Image selection
+
+Both params read the SKU images from the VTEX catalog API. They are mutually exclusive (sending both returns 400).
+
+- `imageIndex`: 0-based position of the image (`imageIndex=0` is the first image).
+- `imageMatch`: case-insensitive text searched in the image name or URL path (the `?v=` query string is ignored). The first image that contains it wins.
+
+Each param may be sent only once. When neither is sent, or nothing matches, each route keeps its default behavior: Meta uses the `_mck` image, then the first image, then the XML `g:image_link`; Google keeps the XML `g:image_link`.
+
+```
+GET /xml-parse-meta?...&imageIndex=1
+GET /xml-parse-meta?...&imageMatch=_rec
+GET /xml-parse?...&complete=1&imageMatch=_mck
+```
 
 ## Running
 

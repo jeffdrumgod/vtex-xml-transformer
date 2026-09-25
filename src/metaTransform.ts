@@ -3,6 +3,7 @@ import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import getVersion from 'getVersion';
 import fetchProductDetails, { ProductDetail } from 'productDetails';
 import buildProductLink, { CustomProductUrlType, UtmOptions } from 'linkBuilder';
+import { ImageSelector, selectImage } from 'imageSelector';
 
 const version = getVersion();
 
@@ -18,6 +19,7 @@ export type MetaTransformOptions = {
   utm: UtmOptions;
   globalCategory?: string;
   customProductUrlType: CustomProductUrlType;
+  imageSelector?: ImageSelector;
 };
 
 const MOCKUP_SUFFIX = '_mck';
@@ -45,9 +47,11 @@ const formatPrice = (value: number | string | undefined): string | undefined => 
   return `${n.toFixed(2)} BRL`;
 };
 
-const resolveImages = (detail: ProductDetail | undefined) => {
+// seletor por parâmetro (imageIndex/imageMatch) tem prioridade; sem match cai na regra _mck -> primeira
+const resolveImages = (detail: ProductDetail | undefined, imageSelector?: ImageSelector) => {
   const images = detail?.images ?? [];
-  const main = images.find((img) => img.imageText?.toLowerCase().endsWith(MOCKUP_SUFFIX)) ?? images[0];
+  const mockup = images.find((img) => img.imageText?.toLowerCase().endsWith(MOCKUP_SUFFIX));
+  const main = selectImage(images, imageSelector) ?? mockup ?? images[0];
   const additional = images
     .filter((img) => img !== main && !img.imageText?.toLowerCase().endsWith(THUMB_SUFFIX))
     .map((img) => img.imageUrl)
@@ -64,7 +68,7 @@ const buildMetaItem = ({
   detail: ProductDetail;
   options: MetaTransformOptions;
 }) => {
-  const { storeDomain, salesChannel, idType, utm, globalCategory, customProductUrlType } = options;
+  const { storeDomain, salesChannel, idType, utm, globalCategory, customProductUrlType, imageSelector } = options;
 
   const skuId = pick(item, 'id') ?? detail.itemId;
   const id = idType === 'product' ? detail.productId : skuId;
@@ -91,7 +95,7 @@ const buildMetaItem = ({
     replaceSalesChannel: true,
   });
 
-  const { main: imageLink, additional } = resolveImages(detail);
+  const { main: imageLink, additional } = resolveImages(detail, imageSelector);
 
   // Meta exige sale_price menor que price. Igual ou maior gera aviso, então omite
   const hasSale = detail.salePrice !== undefined && detail.price !== undefined && +detail.salePrice < +detail.price;

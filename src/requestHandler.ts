@@ -48,7 +48,36 @@ const RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse) => 
     if (idType && !['sku', 'product'].includes(`${idType}`)) {
       res.statusCode = 400;
       res.end('Invalid parameter idType: expected "sku" or "product"');
+      return;
     }
+  }
+
+  // imageIndex / imageMatch: valem para meta e google, mutuamente exclusivos
+  const { imageIndex, imageMatch } = queryObject;
+  const hasIndex = imageIndex !== undefined && `${imageIndex}` !== '';
+  const hasMatch = imageMatch !== undefined;
+
+  if (Array.isArray(imageIndex) || Array.isArray(imageMatch)) {
+    res.statusCode = 400;
+    res.end('Parameters imageIndex and imageMatch must not be repeated');
+    return;
+  }
+
+  if (hasIndex && hasMatch) {
+    res.statusCode = 400;
+    res.end('Parameters imageIndex and imageMatch are mutually exclusive');
+    return;
+  }
+
+  if (hasIndex && !/^\d+$/.test(`${imageIndex}`)) {
+    res.statusCode = 400;
+    res.end('Invalid parameter imageIndex: expected integer >= 0');
+    return;
+  }
+
+  if (hasMatch && `${imageMatch}`.trim() === '') {
+    res.statusCode = 400;
+    res.end('Invalid parameter imageMatch: expected non-empty text');
   }
 };
 
