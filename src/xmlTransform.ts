@@ -3,7 +3,7 @@ import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import He from 'he';
 import getVersion from 'getVersion';
 import fetchProductDetails from 'productDetails';
-import buildProductLink, { CustomProductUrlType } from 'linkBuilder';
+import buildProductLink, { CustomProductUrlType, UtmOptions } from 'linkBuilder';
 import { ImageSelector, selectImage } from 'imageSelector';
 
 const version = getVersion();
@@ -16,6 +16,8 @@ const XmlTransform = async ({
   salesChannel,
   complete = false,
   isMainFeed = false,
+  feedLabel,
+  utm,
   globalCategory,
   customProductUrlType,
   imageSelector,
@@ -27,6 +29,8 @@ const XmlTransform = async ({
   salesChannel: string;
   complete: boolean;
   isMainFeed: boolean;
+  feedLabel?: string; // rótulo da fonte no Merchant. Só metadado: g:custom_label_0 (complete) + comentário final
+  utm?: UtmOptions;
   globalCategory: string;
   customProductUrlType: CustomProductUrlType;
   imageSelector?: ImageSelector;
@@ -112,7 +116,7 @@ const XmlTransform = async ({
             let salePrice = item?.['g:sale_price'];
             const id = item?.['g:id'];
 
-            link = buildProductLink({ link, storeDomain, salesChannel, customProductUrlType });
+            link = buildProductLink({ link, storeDomain, salesChannel, customProductUrlType, utm });
 
             // OMG, this is a hack, but it works
             // - get details from API
@@ -169,6 +173,8 @@ const XmlTransform = async ({
                     }),
                 ...(globalCategory ? { 'g:google_product_category': globalCategory } : {}),
                 ...(isProductVariable ? { 'g:gtin': '' } : {}),
+                // rótulo da fonte como custom_label: segmentação e relatório na campanha. Regional não aceita custom_label
+                ...(feedLabel ? { 'g:custom_label_0': feedLabel } : {}),
               };
             }
             return {
@@ -210,6 +216,8 @@ const XmlTransform = async ({
       const xmlBuilder = new XMLBuilder(optionsEncode);
 
       const xml = xmlBuilder.build(newEntries);
+      // "--" não pode existir dentro de comentário XML
+      const feedLabelComment = feedLabel ? ` feed_label="${feedLabel.replace(/-{2,}/g, '-')}"` : '';
 
       fs.writeFileSync(
         file,
@@ -218,7 +226,7 @@ const XmlTransform = async ({
   <channel>
 ${xml}
 </channel>
-</rss><!-- transformedBy="vtex-xml-transformer-${version}" region_id="${regionId}" | From VTEX: ${vtexXmlDetails} -->`,
+</rss><!-- transformedBy="vtex-xml-transformer-${version}" region_id="${regionId}"${feedLabelComment} | From VTEX: ${vtexXmlDetails} -->`,
         'utf8',
       );
     } catch (err: any) {

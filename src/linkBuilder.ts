@@ -7,6 +7,7 @@ export type UtmOptions = {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  utmContent?: string;
 };
 
 export const formatProductPathUrl = (urlObject: URL, customTypeFormat: CustomProductUrlType) => {
@@ -35,11 +36,12 @@ const applyUtm = (urlObject: URL, utm: UtmOptions) => {
   if (utm.utmSource) urlObject.searchParams.set('utm_source', utm.utmSource);
   if (utm.utmMedium) urlObject.searchParams.set('utm_medium', utm.utmMedium);
   if (utm.utmCampaign) urlObject.searchParams.set('utm_campaign', utm.utmCampaign);
+  if (utm.utmContent) urlObject.searchParams.set('utm_content', utm.utmContent);
 };
 
 /**
  * Reescreve link do produto: host da loja, path customizado, sc e utm.
- * Sem opção de utm, mantém comportamento original (Google): só sc + host + path.
+ * Sem opção de utm (ou com keepUtm e sem override), mantém utm_* do XML intocado.
  */
 const buildProductLink = ({
   link,

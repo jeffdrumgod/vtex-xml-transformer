@@ -52,6 +52,21 @@ const RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse) => 
     }
   }
 
+  if (pathname === ROUTES.google) {
+    const { feedLabel } = queryObject;
+    if (Array.isArray(feedLabel)) {
+      res.statusCode = 400;
+      res.end('Parameter feedLabel must not be repeated');
+      return;
+    }
+    // mesmo formato do rótulo de feed do Merchant (letras, dígitos, hífen, underscore, até 20)
+    if (feedLabel !== undefined && !/^[A-Za-z0-9_-]{1,20}$/.test(`${feedLabel}`)) {
+      res.statusCode = 400;
+      res.end('Invalid parameter feedLabel: expected 1-20 chars (letters, digits, hyphen or underscore)');
+      return;
+    }
+  }
+
   // imageIndex / imageMatch: valem para meta e google, mutuamente exclusivos
   const { imageIndex, imageMatch } = queryObject;
   const hasIndex = imageIndex !== undefined && `${imageIndex}` !== '';

@@ -7,8 +7,9 @@ import RequestHandler, { ROUTES } from './requestHandler';
 import XmlTransform from './xmlTransform';
 import MetaTransform from './metaTransform';
 import { parseImageSelector } from './imageSelector';
+import { UtmOptions } from './linkBuilder';
 
-const port = 8000;
+const port = Number(process.env.PORT) || 8000;
 
 const getRemoteVtexXml = async ({
   storeDomain,
@@ -28,6 +29,15 @@ const getRemoteVtexXml = async ({
   const savedFile = await Download(url, file);
   return savedFile;
 };
+
+// utm=0 remove utm_*; default mantém utm_* do XML e só sobrescreve o que for enviado
+const parseUtm = (query: Record<string, unknown>): UtmOptions => ({
+  keepUtm: !['0', 'false'].includes(`${query?.utm ?? '1'}`),
+  utmSource: query?.utmSource as string | undefined,
+  utmMedium: query?.utmMedium as string | undefined,
+  utmCampaign: query?.utmCampaign as string | undefined,
+  utmContent: query?.utmContent as string | undefined,
+});
 
 const server = http.createServer(RequestHandler);
 let requestCounter = 0;
@@ -65,12 +75,7 @@ server.on('request', async (req, res) => {
             regionId: (queryObject?.regionId ?? '') as string,
             salesChannel: (queryObject?.salesChannel ?? '') as string,
             idType: (queryObject?.idType === 'product' ? 'product' : 'sku') as 'sku' | 'product',
-            utm: {
-              keepUtm: !['0', 'false'].includes(`${queryObject?.utm ?? '1'}`),
-              utmSource: queryObject?.utmSource as string | undefined,
-              utmMedium: queryObject?.utmMedium as string | undefined,
-              utmCampaign: queryObject?.utmCampaign as string | undefined,
-            },
+            utm: parseUtm(queryObject),
             globalCategory: queryObject?.globalCategory as string | undefined,
             customProductUrlType: queryObject?.customProductUrlType as any,
             imageSelector: parseImageSelector(queryObject),
@@ -83,6 +88,8 @@ server.on('request', async (req, res) => {
             salesChannel: (queryObject?.salesChannel ?? '') as string,
             complete: !!queryObject?.complete,
             isMainFeed: !!queryObject?.isMainFeed,
+            feedLabel: (queryObject?.feedLabel as string | undefined) || undefined,
+            utm: parseUtm(queryObject),
             globalCategory: queryObject?.globalCategory as string,
             customProductUrlType: queryObject?.customProductUrlType as any,
             imageSelector: parseImageSelector(queryObject),
