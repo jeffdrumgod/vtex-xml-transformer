@@ -112,6 +112,12 @@ const XmlTransform = async ({
               delete item?.['product_category'];
             }
 
+            // primário não leva sale_price (regional é quem liga preço/estoque). O XML da VTEX
+            // traz g:sale_price como "R$ 14,90", inválido pro Google, então remove em vez de espalhar
+            if (isMainFeed && item?.['g:sale_price'] !== undefined) {
+              delete item['g:sale_price'];
+            }
+
             let price = item?.['g:price'];
             let salePrice = item?.['g:sale_price'];
             const id = item?.['g:id'];
