@@ -11,20 +11,20 @@ import { UtmOptions } from './linkBuilder';
 
 const port = Number(process.env.PORT) || 8000;
 
+// XML vem direto do host VTEX da conta. storeDomain fica só pros links do produto:
+// a borda (CDN) do domínio da loja pode não encaminhar /XMLData/ pra VTEX
 const getRemoteVtexXml = async ({
-  storeDomain,
   storeName,
   xmlName,
   salesChannel,
 }: {
-  storeDomain: string;
   storeName: string;
   xmlName: string;
   salesChannel: string;
 }): Promise<fs.PathLike> => {
   const time = new Date().getTime();
   const file = resolve('./tmp', `${storeName}-${xmlName}-${time}.xml`);
-  const url = `https://${storeDomain}/XMLData/${xmlName}.xml?sc=${salesChannel}`;
+  const url = `https://${storeName}.vtexcommercestable.com.br/XMLData/${xmlName}.xml?sc=${salesChannel}`;
   console.log(`Downloading XML from: ${url}`);
   const savedFile = await Download(url, file);
   return savedFile;
@@ -57,7 +57,6 @@ server.on('request', async (req, res) => {
   try {
     const fileName = await getRemoteVtexXml(
       queryObject as {
-        storeDomain: string;
         storeName: string;
         xmlName: string;
         salesChannel: string;

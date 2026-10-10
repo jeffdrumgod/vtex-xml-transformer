@@ -2,6 +2,8 @@
 
 HTTP service that downloads a VTEX store product XML and transforms it into a feed for Google Merchant Center or Meta (Facebook/Instagram), applying price, stock and product URLs per region and sales channel.
 
+The XML is fetched from `https://{storeName}.vtexcommercestable.com.br/XMLData/{xmlName}.xml?sc={salesChannel}` and prices and stock from the catalog API of the same account. `storeDomain` is used only to build the product URLs, so the store CDN never sits in the download path.
+
 ## Endpoints
 
 - `GET /status` — running version
@@ -16,8 +18,8 @@ GET /xml-parse?storeDomain=mystore.vtexcommercestable.com.br&storeName=mystore&x
 
 | Param | Required | Description |
 |---|---|---|
-| `storeDomain` | yes | Store domain used to build product URLs |
-| `storeName` | yes | VTEX account name (`{storeName}.myvtex.com`) |
+| `storeDomain` | yes | Store domain used to build product URLs (not used to download the XML) |
+| `storeName` | yes | VTEX account name. XML is downloaded from `{storeName}.vtexcommercestable.com.br`, prices from its catalog API |
 | `xmlName` | yes | XML file name in VTEX, without extension |
 | `regionId` | yes | Value written to `g:region_id` |
 | `salesChannel` | yes | VTEX sales channel (`sc`) used for price and stock |
@@ -52,8 +54,8 @@ GET /xml-parse-meta?storeDomain=mystore.vtexcommercestable.com.br&storeName=myst
 
 | Param | Required | Description |
 |---|---|---|
-| `storeDomain` | yes | Store domain used to build product URLs |
-| `storeName` | yes | VTEX account name |
+| `storeDomain` | yes | Store domain used to build product URLs (not used to download the XML) |
+| `storeName` | yes | VTEX account name. XML is downloaded from `{storeName}.vtexcommercestable.com.br`, prices from its catalog API |
 | `xmlName` | yes | XML file name in VTEX, without extension |
 | `salesChannel` | yes | VTEX sales channel (`sc`) used for price and stock |
 | `idType` | no | `sku` (default) or `product` (dedupe by product, prefer available SKU) |
